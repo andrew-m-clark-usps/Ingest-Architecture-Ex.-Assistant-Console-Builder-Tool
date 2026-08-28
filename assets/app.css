@@ -1,0 +1,4 @@
+/* DEMO/REFERENCE SCAFFOLD -- structural layout only; night.css is the only
+   theme (invariant 7). No <style> attributes are emitted by assistant.py;
+   this file is linked, per invariant 6. */
+body { max-width: 960px; margin: 0 auto; }

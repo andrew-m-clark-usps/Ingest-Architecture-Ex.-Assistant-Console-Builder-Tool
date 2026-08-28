@@ -1,0 +1,18 @@
+/* DEMO/REFERENCE SCAFFOLD -- the only theme, per invariant 7 (dark only,
+   no light variant, no system switch). See Exec-Assistant.md section 8. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --fg: #e6e6e6;
+  --muted: #9aa0a6;
+  --accent: #6ea8fe;
+}
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 2rem;
+}
+a { color: var(--accent); }
+p { color: var(--muted); }

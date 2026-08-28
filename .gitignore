@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+node_modules/
+dist/
+site/
+inbox/
+notes/
+log/
+tasks.md
+brief.md
