@@ -1,0 +1,22 @@
+{
+  "name": "console",
+  "version": "0.1.0-demo",
+  "private": true,
+  "description": "DEMO/REFERENCE SCAFFOLD for the React console in Exec-Assistant.md Appendix A2. A separate product from the assistant's dark, no-script pages -- see AGENTS.md.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.400.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.6.0",
+    "vite": "^8.2.2"
+  }
+}
