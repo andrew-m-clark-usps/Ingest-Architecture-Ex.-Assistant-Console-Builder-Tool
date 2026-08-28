@@ -40,7 +40,7 @@ at [`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) section 14 (Done Means).
 - **Phase 6 — image/OCR reader and design-token extraction**, per sections
   covering transcription-not-interpretation and literal-value-free CSS.
 
-## Addressing Console (`Console` branch)
+##  Console (`Console` branch)
 
 **Current state:** `console-app/` has full routing/theme/layout wiring; each
 page under `src/pages/` is a placeholder `Typography` stub citing its
@@ -56,15 +56,15 @@ page under `src/pages/` is a placeholder `Typography` stub citing its
   closing-balance aggregations exactly as specified (total position per
   date, sum of per-account closing balances) to avoid the two known
   aggregation bugs.
-- **Phase 3 — Validator + Change-of-address workbench.**
-- **Phase 4 — Reports, Data Sources, PAF/licensing, Reference pages**, using
+- **Phase 3 — Validator +  workbench.**
+- **Phase 4 — Reports, Data Sources, , Reference pages**, using
   the verified external URL list in section 8 (re-checked by a script that
   exits non-zero on a broken link).
 - **Phase 5 — quality gates.** `npm run lint` clean under flat config;
   `npm run smoke` (Playwright) across grids/exports/access model/metering/
   theme toggle with zero console errors; a grep of `dist/` for `type=
   "password"`, `fetch(`, `XMLHttpRequest`, and any AI SDK, all absent.
-- **Phase 6 — MCP tool parity check**: assert the MCP return-code lookup and
+- **Phase 6 — MCP tool parity check**: assert the MCP  and
   the standardizer agree with the UI.
 
 ## Assistant + Dashboard + Parity Harness (`Exec-Assistant` branch)
