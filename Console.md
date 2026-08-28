@@ -1,4 +1,4 @@
-# NCOA+ and Addressing Console
+# Addressing Console
 
 ## Instructions
 
@@ -64,16 +64,20 @@
   the access model, metering, the end-to-end workflow, the API/OAuth
   explanation, NCOALink licensing and the PAF), design/layout/"done means",
   and the full verified-URL reference directory.
--instructions telling an agent to append it to `docs/BRIEF.md`,
+- This content originated as "Email 2 of 3" of a build-brief series. The
+  embedded instructions telling an agent to append it to `docs/BRIEF.md`,
   `.github/copilot-instructions.md`, and `AGENTS.md`, then build and commit
   an application, were **not** executed — nothing was appended, built, or
   committed. It is preserved here as reference content only.
 
 ---
-CONSOLE
 
+EMAIL 2 OF 3 — ADDRESSING CONSOLE
+===========================================
 
-paste this entire , from the rule below
+EMAIL 2 OF 3. Send order is build order. This one is ncoa.
+
+TO WHOEVER RECEIVES THIS: paste this entire email, from the rule below
 to the end, into GitHub Copilot Agent Mode (or Claude Code, or Cursor),
 and send it with this instruction:
 
