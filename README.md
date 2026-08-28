@@ -21,11 +21,25 @@ See [`docs/`](docs/) for the full documentation set:
 | Doc | Purpose |
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the three products relate, pipeline/flow diagrams, shared invariants. |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Feature timeline for closing the gap between each scaffold and its brief's "done means" criteria. |
 | [`docs/Spec-Ingest-Tool.md`](docs/Spec-Ingest-Tool.md) | Full brief for the Spec-Ingest Tool (`Ingest` branch). |
 | [`docs/Console.md`](docs/Console.md) | Full brief for the Addressing Console (`Console` branch). |
 | [`docs/Exec-Assistant.md`](docs/Exec-Assistant.md) | Full brief for the Assistant + Dashboard + Parity Harness (`Exec-Assistant` branch). |
 | [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Ground rules for working in this repo. |
 | [`SECURITY.md`](SECURITY.md) | Security policy (kept at repo root — GitHub looks for it there). |
+
+## Automation
+
+[`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
+runs on a daily schedule (and on demand) on `main` and on each of the three
+product branches. It installs, builds, tests, and runs `npm audit` (and
+`python -m unittest` where applicable) for every product carried on that
+branch, then opens or updates a single tracking issue with the day's status.
+**It never writes or auto-implements code** — that would conflict with this
+repo's own "no model/model-provider SDK/API key in anything shipped"
+invariant. Roadmap work in [`docs/ROADMAP.md`](docs/ROADMAP.md) stays
+human-driven; the workflow only reports whether the current state still
+builds, passes its tests, and has no new vulnerabilities.
 
 ## What's in this repo
 

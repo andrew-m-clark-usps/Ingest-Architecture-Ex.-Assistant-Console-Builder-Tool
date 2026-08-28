@@ -1,0 +1,144 @@
+name: Daily health check
+
+# Demo/reference automation: runs build + test + npm audit across every
+# product carried on this branch (main is the integration branch and holds
+# all three: Ingest tool, Addressing Console, Exec-Assistant + dashboard +
+# parity harness + console). Never writes code or auto-implements roadmap
+# items -- see docs/ROADMAP.md for planned work, which stays human-driven.
+# Opens or updates a single tracking issue with the day's status; does not
+# fail the workflow run just because one product has a build/test/audit
+# problem, so the issue reflects reality instead of only the first failure.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Ingest tool - install
+        id: ingest_install
+        continue-on-error: true
+        run: npm install
+
+      - name: Ingest tool - build
+        id: ingest_build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Ingest tool - test
+        id: ingest_test
+        continue-on-error: true
+        run: npm test
+
+      - name: Ingest tool - audit
+        id: ingest_audit
+        continue-on-error: true
+        run: npm audit
+
+      - name: Addressing Console (console-app/) - install
+        id: consoleapp_install
+        continue-on-error: true
+        working-directory: console-app
+        run: npm install
+
+      - name: Addressing Console (console-app/) - build
+        id: consoleapp_build
+        continue-on-error: true
+        working-directory: console-app
+        run: npm run build
+
+      - name: Addressing Console (console-app/) - audit
+        id: consoleapp_audit
+        continue-on-error: true
+        working-directory: console-app
+        run: npm audit
+
+      - name: Exec-Assistant CLI - unit tests
+        id: assistant_test
+        continue-on-error: true
+        run: python -m unittest test_core -v
+
+      - name: Parity harness (tools/) - install
+        id: tools_install
+        continue-on-error: true
+        working-directory: tools
+        run: npm install
+
+      - name: Parity harness (tools/) - audit
+        id: tools_audit
+        continue-on-error: true
+        working-directory: tools
+        run: npm audit
+
+      - name: React console (console/) - install
+        id: consoleappendix_install
+        continue-on-error: true
+        working-directory: console
+        run: npm install
+
+      - name: React console (console/) - audit
+        id: consoleappendix_audit
+        continue-on-error: true
+        working-directory: console
+        run: npm audit
+
+      - name: Build status report
+        id: report
+        if: always()
+        run: |
+          {
+            echo "### Daily health check — $(date -u +%Y-%m-%d) (main)"
+            echo ""
+            echo "| Product | Step | Result |"
+            echo "|---|---|---|"
+            echo "| Ingest tool | install | ${{ steps.ingest_install.outcome }} |"
+            echo "| Ingest tool | build | ${{ steps.ingest_build.outcome }} |"
+            echo "| Ingest tool | test | ${{ steps.ingest_test.outcome }} |"
+            echo "| Ingest tool | audit | ${{ steps.ingest_audit.outcome }} |"
+            echo "| Addressing Console (console-app/) | install | ${{ steps.consoleapp_install.outcome }} |"
+            echo "| Addressing Console (console-app/) | build | ${{ steps.consoleapp_build.outcome }} |"
+            echo "| Addressing Console (console-app/) | audit | ${{ steps.consoleapp_audit.outcome }} |"
+            echo "| Exec-Assistant CLI | unittest | ${{ steps.assistant_test.outcome }} |"
+            echo "| Parity harness (tools/) | install | ${{ steps.tools_install.outcome }} |"
+            echo "| Parity harness (tools/) | audit | ${{ steps.tools_audit.outcome }} |"
+            echo "| React console (console/) | install | ${{ steps.consoleappendix_install.outcome }} |"
+            echo "| React console (console/) | audit | ${{ steps.consoleappendix_audit.outcome }} |"
+            echo ""
+            echo "\`console/\` has no build step by design (Appendix A2 component + docs only, no wired entry point)."
+            echo ""
+            echo "_Automated report — no code was changed. See docs/ROADMAP.md for planned work._"
+          } > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update tracking issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="Daily health check (main)"
+          NUMBER=$(gh issue list --search "$TITLE in:title" --state open --json number,title --jq '.[] | select(.title == "'"$TITLE"'") | .number' | head -n1)
+          if [ -z "$NUMBER" ]; then
+            gh issue create --title "$TITLE" --body-file report.md
+          else
+            gh issue edit "$NUMBER" --body-file report.md
+          fi

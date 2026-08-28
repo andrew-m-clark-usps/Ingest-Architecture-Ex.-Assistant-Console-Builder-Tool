@@ -3,6 +3,7 @@
 | Doc | Purpose |
 |---|---|
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | How the three products relate, pipeline/flow diagrams, shared invariants. |
+| [`ROADMAP.md`](ROADMAP.md) | Feature timeline for closing the gap between each scaffold and its brief's "done means" criteria. |
 | [`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) | Full brief for the Spec-Ingest Tool (`Ingest` branch). |
 | [`Console.md`](Console.md) | Full brief for the Addressing Console (`Console` branch). |
 | [`Exec-Assistant.md`](Exec-Assistant.md) | Full brief for the Assistant + Dashboard + Parity Harness (`Exec-Assistant` branch). |
