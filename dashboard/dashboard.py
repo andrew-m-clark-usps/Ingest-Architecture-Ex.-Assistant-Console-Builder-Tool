@@ -3,9 +3,6 @@ dashboard/sample.json and writes 5 static pages (overview, records, feeds,
 charges, activity). Same dark theme and widget CSS, no script. Not
 implemented here.
 """
-import json
-import sys
-from pathlib import Path
 
 
 def main() -> None:

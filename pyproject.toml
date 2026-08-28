@@ -1,0 +1,17 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+# DEMO/REFERENCE SCAFFOLD -- lints the Exec-Assistant CLI scaffold
+# (assistant.py, features.py, ingest.py, mcp_server.py, test_core.py).
+# Dev-time tooling only; ruff itself is never a runtime dependency of
+# the shipped assistant, which stays standard-library-only per
+# Exec-Assistant.md invariants 6/7.
+exclude = [
+    "console-app",
+    "console",
+    "node_modules",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

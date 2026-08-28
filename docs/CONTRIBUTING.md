@@ -27,6 +27,11 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for how they relate.
 
 - Run the relevant build/test command for the branch you touched (see each
   branch's `README.md` for the exact commands).
+- Run the linter for anything you touched: `npm run lint` (ESLint 9 flat
+  config) in `./`, `console-app/`, `console/`, or `tools/`; `ruff check .`
+  for the Python assistant scaffold (`assistant.py`, `features.py`,
+  `ingest.py`, `mcp_server.py`, `test_core.py`, `dashboard/`). All of these
+  run in `.github/workflows/ci.yml` and will block a PR on main if they fail.
 - Run `npm audit` (or the language-appropriate equivalent) on any
   `package.json` you touched, and fix vulnerabilities with
   `npm audit fix` before `--force`-ing a breaking bump.

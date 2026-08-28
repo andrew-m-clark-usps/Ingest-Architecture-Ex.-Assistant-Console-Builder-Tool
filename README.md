@@ -31,9 +31,11 @@ See [`docs/`](docs/) for the full documentation set:
 ## Automation
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and
-pull request touching `main`: install/build/test/lint/`npm audit` for every
-product on this branch, failing the run (and blocking a PR) on any real
-failure — no code is generated.
+pull request touching `main`: install/build/lint/test/`npm audit` for every
+Node product on this branch (ESLint 9 flat config in each of `./`,
+`console-app/`, `console/`, `tools/`), plus `ruff check .` and
+`python -m unittest` for the Python assistant scaffold, failing the run (and
+blocking a PR) on any real failure — no code is generated.
 
 [`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
 runs on a daily schedule (and on demand) on `main` and on each of the three

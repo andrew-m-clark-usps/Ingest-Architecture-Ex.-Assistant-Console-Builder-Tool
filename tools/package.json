@@ -6,10 +6,15 @@
   "type": "module",
   "scripts": {
     "twin": "node twinning.mjs",
-    "twin:mcp": "node twinning_mcp.mjs"
+    "twin:mcp": "node twinning_mcp.mjs",
+    "lint": "eslint ."
   },
   "dependencies": {
     "playwright": "^1.47.0",
     "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0",
+    "globals": "^15.9.0"
   }
 }
