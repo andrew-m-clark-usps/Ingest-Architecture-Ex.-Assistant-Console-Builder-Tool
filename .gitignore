@@ -2,12 +2,10 @@ __pycache__/
 *.pyc
 node_modules/
 dist/
+*.log
 site/
 inbox/
 notes/
 log/
 tasks.md
 brief.md
-node_modules/
-dist/
-*.log
