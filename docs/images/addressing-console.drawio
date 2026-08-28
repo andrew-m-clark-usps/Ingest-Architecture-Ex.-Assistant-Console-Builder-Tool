@@ -1,0 +1,65 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Addressing Console" id="addressing-console">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="ADDRESSING CONSOLE — what it does" style="text;html=1;fontSize=20;fontStyle=1;fontFamily=Helvetica;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="600" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="root" value="Sidebar / BrowserRouter&#10;(console-app/, browser-only,&#10;no backend, no credentials)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Helvetica;fontSize=13;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="hub" value="Hub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="80" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway" value="Gateway&#10;(Business Customer Gateway access model)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="135" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="usage" value="Usage &amp; reporting&#10;(projected invoice)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="190" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ledger" value="Payment ledger&#10;(EPS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="245" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="coa" value="Change-of-address&#10;workbench" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="300" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="validator" value="Address validator&#10;(Publication 28)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="355" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="reports" value="Reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="410" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Data sources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="465" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="paf" value="PAF &amp; licensing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="80" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="reference" value="Reference library" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="135" width="200" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="guard" value="No type=&quot;password&quot; anywhere in the built output &#8226; no model/SDK/API key &#8226; synthetic sample data only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="410" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="hub"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="gateway"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="usage"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="ledger"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="coa"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="validator"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="reports"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="sources"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="paf"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="root" target="reference"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,91 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Exec-Assistant" id="exec-assistant">
+    <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="ASSISTANT + DASHBOARD + PARITY HARNESS — what it does" style="text;html=1;fontSize=20;fontStyle=1;fontFamily=Helvetica;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="800" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Assistant engine column -->
+        <mxCell id="assistant_panel" value="COMMITMENTS ASSISTANT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1;fontFamily=Helvetica;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="320" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="Ctrl+Alt+C / Ctrl+Alt+N /&#10;mcp capture / gh issue / note line" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="110" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="inbox/*.md&#10;one file per capture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="180" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="file: classify_rules&#10;date resolved? strip phrase, set due" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="250" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" value="people/&lt;name&gt;.md and tasks.md&#10;I owe / Waiting on / Done" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="320" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" value="brief / eod / week&#10;dark-only, no-script site" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="390" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" value="Python standard library only&#10;outside tools/ and console/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="70" y="460" width="260" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Dashboard column -->
+        <mxCell id="dash_panel" value="CONSOLE OPERATIONAL DASHBOARD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1;fontFamily=Helvetica;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="70" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="dashboard/dashboard.py&#10;reads dashboard/sample.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="110" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="5 static pages: overview, records,&#10;feeds, charges, activity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="180" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="Same dark theme + widget CSS,&#10;no script" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="245" width="240" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- React console (Appendix A2) -->
+        <mxCell id="react_panel" value="REACT CONSOLE (Appendix A2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1;fontFamily=Helvetica;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="420" y="320" width="300" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="console/DashboardCore.tsx&#10;separate product, its own build&#10;(named exception to no-JS rule)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="360" width="240" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Parity harness column -->
+        <mxCell id="parity_panel" value="PARITY HARNESS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1;fontFamily=Helvetica;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="800" y="70" width="320" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="p1" value="tools/twinning.mjs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="830" y="110" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="Drive legacy URL&#10;(scripted flow, selectors from inventory)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="165" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="Drive modern URL&#10;(same flow, data-testid selectors)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="230" width="260" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="Compare: named value,&#10;console/page errors, element count,&#10;screenshots" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="295" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" value="Pass: exit 0, no telemetry&#10;Fail: exit non-zero,&#10;artifacts/twinning/telemetry.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="370" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="p6" value="Playwright + MCP SDK live here only&#10;— never in a shipped rendered page" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="450" width="260" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;" edge="1" parent="1" source="a1" target="a2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;" edge="1" parent="1" source="a2" target="a3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;" edge="1" parent="1" source="a3" target="a4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;endArrow=block;html=1;fontFamily=Helvetica;" edge="1" parent="1" source="a4" target="a5"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e5" value="proves rebuild of" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;strokeWidth=2;endArrow=block;dashed=1;html=1;fontFamily=Helvetica;fontSize=10;" edge="1" parent="1" source="parity_panel" target="dash_panel"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="760" y="185" /></Array></mxGeometry></mxCell>
+        <mxCell id="e6" value="proves rebuild of" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;strokeWidth=2;endArrow=block;dashed=1;html=1;fontFamily=Helvetica;fontSize=10;" edge="1" parent="1" source="parity_panel" target="react_panel"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="760" y="380" /></Array></mxGeometry></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

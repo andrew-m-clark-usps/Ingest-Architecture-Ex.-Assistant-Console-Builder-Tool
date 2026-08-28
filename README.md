@@ -76,6 +76,18 @@ provider SDK/API key in anything shipped. The parity harness
 | Addressing Console | `Console` | The worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
 | Assistant + Dashboard + Parity Harness | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the Console operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
 
+### Spec-Ingest Tool
+
+![Spec-Ingest Tool — what it does](docs/images/ingest-tool.png)
+
+### Addressing Console
+
+![Addressing Console — what it does](docs/images/addressing-console.png)
+
+### Assistant + Dashboard + Parity Harness
+
+![Assistant + Dashboard + Parity Harness — what it does](docs/images/exec-assistant.png)
+
 Each brief file starts with a condensed `## Instructions` section (the key
 rules distilled into bullets) followed by `## Additional Guidelines`, which
 carries the full original brief verbatim — including its ASCII diagrams and
