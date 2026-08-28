@@ -1,3 +1,0 @@
-/* DEMO/REFERENCE SCAFFOLD -- see Exec-Assistant.md section 5: widgets.css
-   must load after this file, or an equal-specificity rule here loses. */
-.topnav { display: flex; gap: 1rem; }

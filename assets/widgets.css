@@ -1,4 +1,0 @@
-/* Loads last on purpose -- see Exec-Assistant.md section 5 (the CSS
-   load-order trap): mobile overrides for widgets belong here, not in
-   topnav.css, because widgets.css loading last is what lets it win. */
-.widget { border: 1px solid #333; padding: 1rem; border-radius: 6px; }
