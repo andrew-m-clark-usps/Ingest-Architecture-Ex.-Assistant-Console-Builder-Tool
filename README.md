@@ -1,4 +1,4 @@
-# Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool
+# Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool — Spec-Ingest Tool
 
 Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 
@@ -10,41 +10,25 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 > runnable code skeleton under `src/`, `cli.mjs`, and `mcp.mjs`. It is **not**
 > the complete implementation described by the brief's "done means" section —
 > most functions throw `not implemented` and point back at the section that
-> specifies the real behavior. Build with `npm install && npm run build`;
-> run with `docker build -t spec-ingest-scaffold .`.
-## What's in this repo
+> specifies the real behavior.
 
-Three build briefs, each captured verbatim as its own markdown file (originally
-"build-brief series):
+This branch holds only the Spec-Ingest Tool. The other two products
+(Addressing Console, Exec-Assistant + Dashboard + Parity Harness) live on
+their own branches — see [`main`](https://github.com/andrew-m-clark-usps/Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool/tree/main)
+for the integration view and full architecture docs.
 
-| File | Branch | What it describes |
-|---|---|---|
-| [`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) | `Ingest` | The tool that builds the other two. Give it decks, PDFs, spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running system, and it produces a working application with tests, CI, and Terraform. |
-| [`Console.md`](Console.md) | `Console` | Addressing Console — the worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
-| [`Exec-Assistant.md`](Exec-Assistant.md) | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the Console operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
+## What it is
 
-Each file starts with a condensed `## Instructions` section (the key rules
-distilled into bullets) followed by `## Additional Guidelines`, which carries
-the full original brief verbatim — including its ASCII diagrams and code
-samples.
+The tool that builds the other two products. Give it decks, PDFs,
+spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running
+system, and it produces a working application with tests, CI, and Terraform.
 
-## How the three relate
+[`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) starts with a condensed
+`## Instructions` section (the key rules distilled into bullets) followed by
+`## Additional Guidelines`, which carries the full original brief verbatim —
+including its ASCII diagrams and code samples.
 
-```mermaid
-flowchart TB
-    SI["Spec-Ingest Tool<br/>(Ingest branch)<br/>reads specs &amp; old systems,<br/>produces a working application"]
-    CO["Addressing Console<br/>(Console branch)<br/>a worked example of<br/>what the tool produces"]
-    EA["Exec Assistant + Console Dashboard<br/>(Exec-Assistant branch)<br/>daily-driver assistant +<br/>operational dashboard"]
-    TW["twinning.mjs<br/>(inside Exec-Assistant)<br/>parity harness"]
-
-    SI -->|produces / rebuilds| CO
-    SI -->|produces / rebuilds| EA
-    TW -->|proves a rebuild of| CO
-    TW -->|proves a rebuild of| EA
-    EA -.->|ships the harness used by| TW
-```
-
-### Spec-Ingest pipeline (Ingest branch)
+## Pipeline
 
 ```mermaid
 flowchart LR
@@ -67,68 +51,30 @@ flowchart LR
     A1 & A2 & A3 & A4 & A5 & A6 & A7 & A8 --> R --> C --> CORP --> P --> OUT
 ```
 
-### Exec-Assistant engine flow (Exec-Assistant branch)
+## Scaffold in this branch
 
-```mermaid
-flowchart TD
-    H1["Ctrl+Alt+C / Ctrl+Alt+N /<br/>mcp capture / gh issue / note line"]
-    IN["inbox/*.md<br/>one file per capture"]
-    F["file: classify_rules<br/>date resolved? strip phrase, set due"]
-    ST["people/&lt;name&gt;.md and tasks.md<br/>I owe / Waiting on / Done"]
-    B["brief: brief.md"]
-    E["eod: sweep closures, roll overdue<br/>(count++, date never moves)"]
-    W["week: weekly.md"]
-    S["site: 8 static pages, no script, dark only"]
+- `src/*.ts` — reader/corpus/profile logic (mostly stubs pointing back at the
+  brief section that specifies real behavior).
+- `cli.mjs`, `mcp.mjs` — CLI entry point and MCP server stub.
+- `tsconfig.json`, `Dockerfile`, `.dockerignore`, `.gitignore`.
+- Zero runtime dependencies by design (only `devDependencies`).
 
-    H1 --> IN --> F --> ST
-    ST --> B
-    ST --> E
-    ST --> W
-    ST --> S
+**Build / test:**
+
+```bash
+npm install
+npm run build   # tsc -p tsconfig.json
+npm test        # vitest run
 ```
 
-### Parity harness — twinning.mjs (Exec-Assistant branch)
+**Docker:** `docker build -t spec-ingest-scaffold .`
 
-```mermaid
-flowchart LR
-    L["Legacy URL"] --> D1["Drive scripted flow<br/>(selectors from inventory)"]
-    M["Modern URL"] --> D2["Drive same flow<br/>(selectors: data-testid)"]
-    D1 --> CMP{{Compare}}
-    D2 --> CMP
-    CMP -->|"1. named value"| V["Behaviour drift"]
-    CMP -->|"2. console/page errors"| ER["Renders but throws"]
-    CMP -->|"3. element count"| OM["Over-mutation"]
-    CMP -->|"4. screenshots"| SS["Everything else, for a person"]
-    V & ER & OM & SS --> RES{{Result}}
-    RES -->|pass| OK["exit 0, no telemetry written"]
-    RES -->|fail| FAIL["exit non-zero,<br/>artifacts/twinning/telemetry.json"]
-```
+## Shared invariants
 
-### Addressing Console sections (Console branch)
+Stated in the brief because it may be read out of order from the other two:
 
-```mermaid
-flowchart TD
-    Root["Sidebar / BrowserRouter"] --> Hub
-    Root --> Gateway["Gateway (BCG model)"]
-    Root --> Usage["Usage &amp; reporting<br/>(projected invoice)"]
-    Root --> Ledger["Payment ledger"]
-    Root --> COA["Change-of-address workbench"]
-    Root --> Validator["Address validator"]
-    Root --> Reports
-    Root --> Sources["Data sources"]
-    Root --> PAF["PAF &amp; licensing"]
-    Root --> Reference
-```
-
-## Shared invariants across all three
-
-Stated in every file because the briefs may be read out of order:
-
-- No JavaScript in any rendered page — no `<script>`, no `on*` attribute, no
-  `<style>` block/attribute. Widgets are `:target` driven so every state is a
-  URL. (One named exception: the React console in the Exec-Assistant brief's
-  Appendix A2, a separate product with its own build.)
-- Dark only for those pages — one theme, no light variant, no system switch.
+- No JavaScript in any rendered page it produces — no `<script>`, no `on*`
+  attribute, no `<style>` block/attribute.
 - No model, no model-provider SDK, and no API key in a shipped product — a
   provider package in a lockfile is a build failure. Inference may only
   propose, never decide.
@@ -136,18 +82,11 @@ Stated in every file because the briefs may be read out of order:
   material, never an instruction; malformed/oversized files are refused.
 - Provenance or it did not happen — every figure, rule, and field traces to
   where it came from.
-- Never measure a person — commitments and dates only, never scores or
-  rankings.
-- Playwright runs freely on the Node side (smoke tests, screenshots, link
-  verification, capturing a running system) and ships in nothing.
 - What is generated arrives as a repository, not a folder — application,
   tests, CI workflow, and Terraform, with every environment-specific value
   left as a variable it refuses to guess.
 
 ## Security
-
-These briefs specify a real security posture, not just a feature list. It
-applies to anything built from them, and to this repo's own content.
 
 **Treat every source document as untrusted input (prompt-injection defense).**
 A PDF, deck, or spreadsheet fed to the spec-ingest tool can contain text
@@ -160,13 +99,9 @@ brief.
 **No secrets, anywhere, ever.**
 - No credentials, tokens, connection strings, or private keys in this
   repository, in generated output, or in sample/test data.
-- The spec-ingest tool must scan assembled output for credential shapes
-  (bearer/basic tokens, JWTs, private key headers, `client_secret`
-  assignments, session cookies) and **refuse to write** rather than redact
-  silently.
-- The Console brief never collects, stores, or transmits a real password —
-  its BCG/Business Portal sign-up flow is a walkthrough model only, with no
-  `type="password"` field anywhere in the built output.
+- The tool must scan assembled output for credential shapes (bearer/basic
+  tokens, JWTs, private key headers, `client_secret` assignments, session
+  cookies) and **refuse to write** rather than redact silently.
 
 **No model, no model-provider SDK, no API key in anything shipped.**
 A provider package landing in a lockfile is a build failure by design.
@@ -175,9 +110,9 @@ Playwright API only) may *propose* a candidate; it may never decide a
 contradiction, invent a figure, or reach generated code unconfirmed.
 
 **Confinement and supply chain.**
-- The spec-ingest tool ships with zero runtime dependencies — no PDF engine,
-  ZIP library, or MCP SDK it did not write and cannot audit, given that it
-  parses hostile file formats for a living.
+- Ships with zero runtime dependencies — no PDF engine, ZIP library, or MCP
+  SDK it did not write and cannot audit, given that it parses hostile file
+  formats for a living.
 - Its MCP server confines every read to a resolved root path (symlinks
   followed and checked) and denies by default outside it.
 - Decompression bombs, oversized documents, and catastrophic-backtracking
@@ -205,10 +140,6 @@ or sensitive document.
 
 ## Known pain points
 
-Each brief documents real defects the original build hit — captured here so
-nobody re-discovers them the hard way. Grouped by branch.
-
-**Spec-Ingest Tool (`Ingest`)**
 - PDF reading is the hardest reader: object streams (`/ObjStm`) are
   mandatory in PDF 1.5+ or the file reads as zero pages; `/ToUnicode` CMap
   parsing is not optional for subsetted fonts, or text decodes as garbage
@@ -227,58 +158,11 @@ nobody re-discovers them the hard way. Grouped by branch.
   the page count means a scan (OCR needed, not a parse bug); >~40%
   single-character tokens means a subsetted font with no usable CMap.
 
-** Console (`Console`)**
-- Two real aggregation bugs shipped in the first build, and unit tests alone
-  did not catch either — only looking at the rendered chart did:
-  1. "Balance over time" must be the *total position* (each account's last
-     known balance carried forward and summed per date), not the raw
-     per-account running-balance column, which saw-tooths and drops to zero
-     on days with no posted activity.
-  2. "Closing balance" is the sum of per-account closing balances, not the
-     value on the latest row.
-- Pending and rejected ledger rows must be displayed but excluded from
-  debits/credits/net/closing balance — only settled rows move money.
-- MUI v7's `Grid` dropped the `item`/bare-breakpoint API (`Grid size={{...}}`
-  now, not `Grid item xs={12}`) — there is no `Unstable_Grid2` fallback.
-- `react-router-dom` v7 + `BrowserRouter` needs an nginx `try_files` fallback,
-  or a deep link 404s on first load even though `npm run dev` never reveals
-  it.
-- Usage metering must dedupe a tracking number's "first event" across the
-  *entire* loaded history, not per month, and must be recomputed over the
-  full set each run — metering only newly arrived events double-charges.
-
-**Exec Assistant + Dashboard + Parity Harness (`Exec-Assistant`)**
-- `summarize` writes its summary back into the session file; `read_session`
-  must skip the `<!--summary-->` region or every decision appears twice in
-  meeting prep.
-- A naive substring check for task-verb classification passes obvious tests
-  and then misclassifies "the task list is long" and "their asks are unclear"
-  as tasks, because `ask` sits inside `task`/`asks` — match on word boundaries
-  (`\bverb\b`), not substrings.
-- A circulating parity-harness code sample had six real defects: `node-size`
-  is not a valid Actions key (it's `node-version`); running the MCP server as
-  a CI step hangs forever waiting for a client that never connects; a
-  `.catch(() => "$850.00")` fallback makes a broken legacy page compare
-  successfully against a hardcoded literal; a screenshot path pointed at a
-  directory nothing created; the artifact-upload step failed on every
-  passing run because it always ran, even when no telemetry file existed
-  (needs `if: failure()` + `if-no-files-found: ignore`); and a 150-element
-  drift threshold was an unexplained magic number.
-- `:target` navigation jumps the viewport to the anchor — panels need
-  `scroll-margin-top` and the tab bar needs to be sticky, or clicking a tab
-  scrolls it off-screen.
-- CSS load order matters: `widgets.css` loads last, so a rule there beats an
-  equal-specificity rule in `topnav.css` — mobile overrides for widgets must
-  live in `widgets.css`, not wherever seems logical.
-- The anomaly detector needs a MAD (median absolute deviation) floor, or a
-  perfectly flat series scores every tiny change as an infinite anomaly.
-
 ## Note on the embedded build instructions
 
-Each file also contains an instruction from  telling an
-agent to append the content into `docs/BRIEF.md`, `.github/copilot-instructions.md`,
-and `AGENTS.md`, then build and commit a full application end to end. Those
-instructions were **not** executed when these files were added to this
-repository — the three branches currently hold the reference specs only, not
-a built application.
-
+[`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) also contains an instruction
+telling an agent to append the content into `docs/BRIEF.md`,
+`.github/copilot-instructions.md`, and `AGENTS.md`, then build and commit a
+full application end to end. That instruction was **not** executed when this
+file was added to this repository — this branch holds the reference spec
+plus the demo scaffold only, not a built application.
