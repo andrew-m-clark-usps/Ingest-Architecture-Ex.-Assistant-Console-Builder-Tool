@@ -1,4 +1,4 @@
-# NCOA+ dashboard access model (demo scaffold)
+# dashboard access model (demo scaffold)
 
 See `Exec-Assistant.md` section 12 for the full model: three roles, a read
 table, an action table, and who decides who gets what. Nobody in the system
