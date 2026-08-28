@@ -1,0 +1,33 @@
+{
+  "name": "addressing-console",
+  "version": "0.1.0-demo",
+  "private": true,
+  "description": "DEMO/REFERENCE SCAFFOLD for the Addressing Console described in ../Console.md. Not the full 'done means' implementation.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^7.0.0",
+    "@mui/material": "^7.0.0",
+    "@mui/icons-material": "^7.0.0",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "eslint": "^9.9.0",
+    "typescript-eslint": "^8.0.0",
+    "globals": "^15.9.0",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0"
+  }
+}
