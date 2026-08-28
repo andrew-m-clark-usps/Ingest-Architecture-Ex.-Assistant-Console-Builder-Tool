@@ -1,0 +1,13 @@
+{
+  "legacy": {
+    "fill": [["#coupon", "SUMMER50"]],
+    "click": ["#checkout-submit"],
+    "read": "#total-display"
+  },
+  "modern": {
+    "fill": [["[data-testid=\"coupon-field\"]", "SUMMER50"]],
+    "click": ["[data-testid=\"checkout-submit\"]"],
+    "read": "[data-testid=\"order-total\"]"
+  },
+  "elementDrift": 150
+}

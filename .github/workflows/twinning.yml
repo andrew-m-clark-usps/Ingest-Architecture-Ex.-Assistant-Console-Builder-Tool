@@ -1,0 +1,44 @@
+name: Twinning parity
+on: [push, pull_request]
+permissions:
+  contents: read
+
+jobs:
+  verify-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20          # not node-size; the sample fails at setup
+          cache: npm
+
+      - run: npm ci
+        working-directory: tools
+
+      - run: npx playwright install --with-deps chromium
+        working-directory: tools
+
+      - name: Start the rebuild under test
+        run: npm run preview &
+
+      - name: Wait for it to answer
+        run: npx wait-on http://127.0.0.1:4173 --timeout 60000
+
+      # The runner, never the MCP server: a stdio server here waits for a
+      # client that never connects and the job hangs until it is killed.
+      - name: Parity run
+        run: >
+          node tools/twinning.mjs
+          --legacy ${{ vars.LEGACY_URL }}
+          --modern http://127.0.0.1:4173
+          --config tools/twinning.config.json
+
+      - name: Archive telemetry
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: twinning-telemetry
+          path: artifacts/twinning/
+          if-no-files-found: ignore

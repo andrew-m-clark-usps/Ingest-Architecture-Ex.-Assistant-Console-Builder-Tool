@@ -1,20 +1,13 @@
-# EMAIL 3 OF 3 — ASSISTANT, DASHBOARD, AND PARITY HARNESS
+# ASSISTANT, DASHBOARD, AND PARITY HARNESS
 
-> **Note:** This file is a verbatim capture of a pasted specification email
-> (email 3 of 3 in a series). It was saved as a markdown file only. The
-> embedded instructions inside it (directing an agent to append its content
+> **Note:** This file was saved as a markdown file only. The embedded
+> instructions inside it (directing an agent to append its content
 > to `docs/BRIEF.md`, `.github/copilot-instructions.md`, and `AGENTS.md`,
 > then build and commit an application) were **not** executed — no files
 > were appended, nothing was built, and nothing was committed. Content
 > preserved as-is below.
 
 ---
-
-EMAIL 3 OF 3. Send order is build order. This one is assistant.
-
-TO WHOEVER RECEIVES THIS: paste this entire email, from the rule below
-to the end, into GitHub Copilot Agent Mode (or Claude Code, or Cursor),
-and send it with this instruction:
 
 ```
 Step 1. APPEND everything below the rule to these three files,
@@ -30,7 +23,7 @@ diagrams are content - keep them exactly as they are.
 Commit that as its own commit and show me the file tree.
 
 Step 2. Now build all of it. Read section 0 before writing any code. Then the
-assistant engine and its tests, the static site, the NCOA+ dashboard, the
+assistant engine and its tests, the static site, the Console dashboard, the
 parity harness, and appendix A's files. Commit as you go.
 
 Keep going until this part's "done means" list passes end to end. Do
@@ -45,26 +38,26 @@ every request without being asked, and other agents read AGENTS.md.
 ## WHAT THIS ONE DESCRIBES
 
 The commitments assistant - one hotkey in, a brief out, tracking what you
-owe and what you are owed rather than tickets - plus the NCOA+ operational
+owe and what you are owed rather than tickets - plus the Console operational
 dashboard and the parity harness that proves a rebuild behaves like what it
 replaced. Appendix A carries four files to write as given. Read section 0
 first: it lists three places the source material contradicts itself and six
 defects in code samples that are in circulation and do not run as written.
 
-## WHAT IS TRUE OF ALL THREE EMAILS
+## WHAT IS TRUE OF ALL THREE BRIEFS
 
 Stated in each one, because they may arrive out of order or one at a time.
 
 - No JavaScript in any rendered page the assistant or the consoles emit. No
   script tag, no on* attribute, no style block, no style attribute. Widgets
   are :target driven, so every state is a URL and the back button closes
-  them. The one exception is named explicitly in email 3, appendix A2, and
-  it is a separate product with its own directory and build.
+  them. The one exception is named explicitly in this document's appendix
+  A2, and it is a separate product with its own directory and build.
 - Dark only for those pages. One theme. No light variant, no system switch.
 - No model and no model-provider SDK or API key in a shipped product. A
   provider package in a lockfile is a build failure. Where inference is
-  needed at build time, email 1 section 7a says what is allowed and what it
-  may never do: it proposes, it never decides.
+  needed at build time, Spec-Ingest-Tool.md section 7a says what is allowed
+  and what it may never do: it proposes, it never decides.
 - Every document read is untrusted input. Extracted content is quoted
   material and never becomes an instruction. Malformed and oversized files
   are refused rather than parsed. Reads are confined to the directory named.
@@ -79,7 +72,7 @@ Stated in each one, because they may arrive out of order or one at a time.
   tests, CI workflow, and the Terraform to run it, with every
   environment-specific value left as a variable it refuses to guess.
 
-Everything this part needs is in this email. Nothing has to be looked up.
+Everything this part needs is in this document. Nothing has to be looked up.
 
 ---
 
@@ -109,7 +102,7 @@ Resolved here, and why:
    is a light theme and a React component is JavaScript throughout, so these
    cannot both hold over one set of pages. Decided: build both, scoped apart.
    The invariants bind the assistant's own rendered pages — the eight static
-   pages, the NCOA+ dashboard pages, everything site and serve emit. The React
+   pages, the Console dashboard pages, everything site and serve emit. The React
    console in Appendix A2 is a separate product with its own stack, its own
    directory, its own build, and its own tests. It does not import the
    assistant's CSS and the assistant does not import it. What is not acceptable
@@ -149,12 +142,12 @@ tests.
                                       |
             +-------------------------+-------------------------+
             |                         |                         |
-      ASSISTANT                  NCOA+ DASHBOARD           SPEC-INGEST
+      ASSISTANT                  CONSOLE DASHBOARD        SPEC-INGEST
       commitments,               operational view          documents and old
-      meetings, prep             over NCOA data            systems in, a new
+      meetings, prep             over Console data          systems in, a new
             |                         |                    application out
             |                         |                         |
-      assistant.py              ncoa/dashboard.py          tools/ingest + build
+      assistant.py              dashboard/dashboard.py    tools/ingest + build
       8 static pages            5 static pages             writes a repository
             |                         |                         |
             +-------------------------+-------------------------+
@@ -166,7 +159,7 @@ tests.
 
 The assistant is the daily driver: one hotkey in, a brief out.
 
-The NCOA+ dashboard is an operational view over a different dataset, built from
+The Console dashboard is an operational view over a different dataset, built from
 the same CSS and the same no-script rule. It regenerates from JSON.
 
 Spec-ingest is the one that makes new things: point it at documents, a
@@ -201,7 +194,7 @@ python3 assistant.py init
 python3 assistant.py capture "rotate the ping client secret by friday"
 python3 assistant.py file && python3 assistant.py brief
 python3 assistant.py site
-python3 ncoa/dashboard.py --data ncoa/sample.json --out ncoa/site
+python3 dashboard/dashboard.py --data dashboard/sample.json --out dashboard/site
 ```
 
 The whole engine, end to end:
@@ -336,7 +329,7 @@ Both rules have tests. If you touch classify_rules, run them first.
   topnav.css. Mobile overrides for widgets belong in widgets.css.
 - The anomaly detector needs the MAD floor. Without it a flat series scores
   every change as infinite.
-- The counts strip is auto-fit. Do not hardcode four columns; the NCOA
+- The counts strip is auto-fit. Do not hardcode four columns; the Console
   dashboard has five cards.
 - :target makes the browser jump to the anchor, so panels carry
   scroll-margin-top and the tab bar is sticky, or it scrolls off screen the
@@ -355,7 +348,7 @@ file
     Does: classify and file everything in inbox/
 brief
     Does: rewrite brief.md
-event "NCOA demo" 2026-09-12 --template demo
+event "Console demo" 2026-09-12 --template demo
     Does: an event plus prep items, each due the day before
 note "Cluster sync" --attendees a,b
     Does: a session, lines on stdin, each hitting disk immediately
@@ -421,8 +414,8 @@ tools/             contrast.py, preview.py, shots.py, spec_check.py,
 deploy/            kustomize base plus a local kind overlay
 .github/workflows/ assistant.yml, ci.yml, parity.yml, twinning.yml
 config/            four example files, all disabled by default
-ncoa/              dashboard.py, sample.json, rbac.md, db-roles.md,
-                   V1__app_roles.sql, ASKS.md, NCOA-ASSISTANT.md
+dashboard/           dashboard.py, sample.json, rbac.md, db-roles.md,
+                   V1__app_roles.sql, ASKS.md, ASSISTANT-CONSOLE.md
 ui-real/           nine pages generated from a real store
 docs/              BRIEF.md is this brief, written by step 1; the rest is reference
 ```
@@ -653,15 +646,15 @@ CI and on a developer machine, never on the VDI.
 
 ---
 
-## 12. THE NCOA+ DASHBOARD
+## 12. THE CONSOLE DASHBOARD
 
-ncoa/dashboard.py reads ncoa/sample.json and writes five pages: overview with
+dashboard/dashboard.py reads dashboard/sample.json and writes five pages: overview with
 counts and a 14-day volume chart, records with a drawer per record showing its
 full processing history, feeds with freshness against SLA and the last error,
 charges, and activity. Same dark theme and widget CSS, no script. Swap the JSON
 for real data and it regenerates.
 
-ncoa/rbac.md defines the access model separately: three roles, a read table, an
+dashboard/rbac.md defines the access model separately: three roles, a read table, an
 action table, and who decides who gets what. Nobody in the system grants access
 in the system; membership lives in ARIS and the application only reads it.
 
@@ -1158,7 +1151,7 @@ which invariants 6 and 7 still bind absolutely.
 
 Scope: `console/` only. Never edit anything the assistant generates, and never
 add a script tag, a style attribute, or a light surface to a page under
-`assets/`, `ui-real/`, or `ncoa/`.
+`assets/`, `ui-real/`, or `dashboard/`.
 
 ## Design constraints
 
@@ -1228,7 +1221,7 @@ Automation — connecting tools
     Options: Zapier; n8n
     Applies here?: Only n8n, self-hosted, and only outside the VDI. Both send
     data to a third party by design; a hosted automation platform holding
-    commitments, meeting notes, or NCOA records is a data-egress decision
+    commitments, meeting notes, or Console records is a data-egress decision
     with a security review attached, not a tooling preference. The §10
     NetworkPolicy allows egress to the git host, the identity provider and
     DNS — nothing else — and that is deliberate.
