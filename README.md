@@ -99,6 +99,15 @@ cd tools && npm install && npm test
 
 **Docker:** `docker build -t assistant-scaffold .`
 
+## Automation
+
+[`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
+runs the assistant's unit tests plus `npm audit` for `tools/` and `console/`
+on a daily schedule (and on demand), then opens or updates a single tracking
+issue with the day's status. It never writes code — see `docs/ROADMAP.md` on
+[`main`](https://github.com/andrew-m-clark-usps/Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool/blob/main/docs/ROADMAP.md)
+for the human-driven feature timeline this branch works from.
+
 ## Shared invariants
 
 Stated in the brief because it may be read out of order from the other two:
