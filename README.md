@@ -217,7 +217,7 @@ nobody re-discovers them the hard way. Grouped by branch.
   the page count means a scan (OCR needed, not a parse bug); >~40%
   single-character tokens means a subsetted font with no usable CMap.
 
-**NCOA+ Addressing Console (`Console`)**
+ Console (`Console`)**
 - Two real aggregation bugs shipped in the first build, and unit tests alone
   did not catch either — only looking at the rendered chart did:
   1. "Balance over time" must be the *total position* (each account's last
