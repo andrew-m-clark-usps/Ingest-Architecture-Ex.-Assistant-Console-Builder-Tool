@@ -10,7 +10,7 @@ Three build briefs, each captured verbatim as its own markdown file (originally
 | File | Branch | What it describes |
 |---|---|---|
 | [`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) | `Ingest` | The tool that builds the other two. Give it decks, PDFs, spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running system, and it produces a working application with tests, CI, and Terraform. |
-| [`Console.md`](Console.md) | `Console` | NCOA+ and Addressing Console — the worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
+| [`Console.md`](Console.md) | `Console` | Console — the worked example the tool produces: Gateway access rules, an  ledger, usage metered into a projected invoice, a validator,  reports, and a reference library. Browser-only, no backend, no credentials. |
 | [`Exec-Assistant.md`](Exec-Assistant.md) | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the NCOA+ operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
 
 Each file starts with a condensed `## Instructions` section (the key rules
