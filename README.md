@@ -193,6 +193,76 @@ every refusal) keyed by hash and identity — never the extracted content
 itself, which would otherwise create an unmanaged second copy of a licensed
 or sensitive document.
 
+## Known pain points
+
+Each brief documents real defects the original build hit — captured here so
+nobody re-discovers them the hard way. Grouped by branch.
+
+**Spec-Ingest Tool (`Ingest`)**
+- PDF reading is the hardest reader: object streams (`/ObjStm`) are
+  mandatory in PDF 1.5+ or the file reads as zero pages; `/ToUnicode` CMap
+  parsing is not optional for subsetted fonts, or text decodes as garbage
+  glyphs; the EOL before `endstream` must be trimmed when `/Length` is an
+  indirect reference, or a valid deflate stream fails to decompress; text
+  outside `BT`/`ET` blocks (e.g. `en-US` language tags) bleeds into output if
+  not filtered.
+- Word-spacing reconstruction from glyph coordinates has no exact answer —
+  err toward inserting a space and repair short fragments afterward (e.g.
+  `Cust+omer` → `Customer`), but never reconsider a confident space (`need to`
+  must not become `needto`).
+- A CLI argument parser using `i !== flagIndex + 1` silently drops the first
+  positional argument when a flag is absent (`indexOf` returns `-1`, `-1 + 1`
+  is `0`).
+- Two refusal guards matter more than the parsing logic: almost-no-text for
+  the page count means a scan (OCR needed, not a parse bug); >~40%
+  single-character tokens means a subsetted font with no usable CMap.
+
+**NCOA+ Addressing Console (`Console`)**
+- Two real aggregation bugs shipped in the first build, and unit tests alone
+  did not catch either — only looking at the rendered chart did:
+  1. "Balance over time" must be the *total position* (each account's last
+     known balance carried forward and summed per date), not the raw
+     per-account running-balance column, which saw-tooths and drops to zero
+     on days with no posted activity.
+  2. "Closing balance" is the sum of per-account closing balances, not the
+     value on the latest row.
+- Pending and rejected ledger rows must be displayed but excluded from
+  debits/credits/net/closing balance — only settled rows move money.
+- MUI v7's `Grid` dropped the `item`/bare-breakpoint API (`Grid size={{...}}`
+  now, not `Grid item xs={12}`) — there is no `Unstable_Grid2` fallback.
+- `react-router-dom` v7 + `BrowserRouter` needs an nginx `try_files` fallback,
+  or a deep link 404s on first load even though `npm run dev` never reveals
+  it.
+- Usage metering must dedupe a tracking number's "first event" across the
+  *entire* loaded history, not per month, and must be recomputed over the
+  full set each run — metering only newly arrived events double-charges.
+
+**Exec Assistant + Dashboard + Parity Harness (`Exec-Assistant`)**
+- `summarize` writes its summary back into the session file; `read_session`
+  must skip the `<!--summary-->` region or every decision appears twice in
+  meeting prep.
+- A naive substring check for task-verb classification passes obvious tests
+  and then misclassifies "the task list is long" and "their asks are unclear"
+  as tasks, because `ask` sits inside `task`/`asks` — match on word boundaries
+  (`\bverb\b`), not substrings.
+- A circulating parity-harness code sample had six real defects: `node-size`
+  is not a valid Actions key (it's `node-version`); running the MCP server as
+  a CI step hangs forever waiting for a client that never connects; a
+  `.catch(() => "$850.00")` fallback makes a broken legacy page compare
+  successfully against a hardcoded literal; a screenshot path pointed at a
+  directory nothing created; the artifact-upload step failed on every
+  passing run because it always ran, even when no telemetry file existed
+  (needs `if: failure()` + `if-no-files-found: ignore`); and a 150-element
+  drift threshold was an unexplained magic number.
+- `:target` navigation jumps the viewport to the anchor — panels need
+  `scroll-margin-top` and the tab bar needs to be sticky, or clicking a tab
+  scrolls it off-screen.
+- CSS load order matters: `widgets.css` loads last, so a rule there beats an
+  equal-specificity rule in `topnav.css` — mobile overrides for widgets must
+  live in `widgets.css`, not wherever seems logical.
+- The anomaly detector needs a MAD (median absolute deviation) floor, or a
+  perfectly flat series scores every tiny change as an infinite anomaly.
+
 ## Note on the embedded build instructions
 
 Each file also contains an instruction from its original email telling an
