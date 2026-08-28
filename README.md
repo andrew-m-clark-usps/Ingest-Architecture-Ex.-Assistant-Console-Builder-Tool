@@ -26,6 +26,7 @@ See [`docs/`](docs/) for the full documentation set:
 | [`docs/Console.md`](docs/Console.md) | Full brief for the Addressing Console (`Console` branch). |
 | [`docs/Exec-Assistant.md`](docs/Exec-Assistant.md) | Full brief for the Assistant + Dashboard + Parity Harness (`Exec-Assistant` branch). |
 | [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Ground rules for working in this repo. |
+| [`AGENTS.md`](AGENTS.md) | Guidance for an AI coding agent working in this repo (kept at repo root — that's the convention most agent tools look for it in; each product branch has its own scoped copy). |
 | [`SECURITY.md`](SECURITY.md) | Security policy (kept at repo root — GitHub looks for it there). |
 
 ## Automation
