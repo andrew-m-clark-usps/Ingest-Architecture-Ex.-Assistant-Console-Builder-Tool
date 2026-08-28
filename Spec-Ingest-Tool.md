@@ -73,13 +73,9 @@
 
 ---
 
-EMAIL 1 OF 3 — SPEC-INGEST: THE TOOL THAT BUILDS THE OTHERS
+E SPEC-INGEST: THE TOOL THAT BUILDS THE OTHERS
 
-EMAIL 1 OF 3. Send order is build order. This one is tool.
 
-TO WHOEVER RECEIVES THIS: paste this entire email, from the rule below
-to the end, into GitHub Copilot Agent Mode (or Claude Code, or Cursor),
-and send it with this instruction:
 
 ```
 Step 1. Write everything below the rule into these three files,
