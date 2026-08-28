@@ -75,6 +75,60 @@ npm test        # vitest run
 and pull request touching this branch: `npm install`/`build`/`test`/`audit`,
 failing the run (and blocking a PR) on any real failure — no code is
 generated.
+> **Integration branch.** `main` carries all three products together (the
+> Ingest tool's `src/`/`cli.mjs`/`mcp.mjs`, the Console's `console-app/`, and
+> the Exec-Assistant's `assistant.py`/`dashboard/`/`tools/`/`console/`). Each
+> product also lives on its own trimmed branch — see the table below and
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). None of the scaffolds are
+> the complete implementation described by their brief's "done means"
+> section — most functions throw `not implemented` and point back at the
+> section that specifies the real behavior.
+
+## Documentation
+
+See [`docs/`](docs/) for the full documentation set:
+
+| Doc | Purpose |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the three products relate, pipeline/flow diagrams, shared invariants. |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Feature timeline for closing the gap between each scaffold and its brief's "done means" criteria. |
+| [`docs/Spec-Ingest-Tool.md`](docs/Spec-Ingest-Tool.md) | Full brief for the Spec-Ingest Tool (`Ingest` branch). |
+| [`docs/Console.md`](docs/Console.md) | Full brief for the Addressing Console (`Console` branch). |
+| [`docs/Exec-Assistant.md`](docs/Exec-Assistant.md) | Full brief for the Assistant + Dashboard + Parity Harness (`Exec-Assistant` branch). |
+| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Ground rules for working in this repo. |
+| [`SECURITY.md`](SECURITY.md) | Security policy (kept at repo root — GitHub looks for it there). |
+
+## Automation
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and
+pull request touching `main`: install/build/test/lint/`npm audit` for every
+product on this branch, failing the run (and blocking a PR) on any real
+failure — no code is generated.
+
+[`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
+runs on a daily schedule (and on demand) on `main` and on each of the three
+product branches. It installs, builds, tests, and runs `npm audit` (and
+`python -m unittest` where applicable) for every product carried on that
+branch, then opens or updates a single tracking issue with the day's status.
+**Neither workflow writes or auto-implements code** — that would conflict
+with this repo's own "no model/model-provider SDK/API key in anything
+shipped" invariant. Roadmap work in [`docs/ROADMAP.md`](docs/ROADMAP.md)
+stays human-driven; automation only reports whether the current state still
+builds, passes its tests, and has no new vulnerabilities.
+
+## What's in this repo
+
+| Product | Branch | What it describes |
+|---|---|---|
+| Spec-Ingest Tool | `Ingest` | The tool that builds the other two. Give it decks, PDFs, spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running system, and it produces a working application with tests, CI, and Terraform. |
+| Addressing Console | `Console` | The worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
+| Assistant + Dashboard + Parity Harness | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the Console operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
+
+Each brief file starts with a condensed `## Instructions` section (the key
+rules distilled into bullets) followed by `## Additional Guidelines`, which
+carries the full original brief verbatim — including its ASCII diagrams and
+code samples. Full diagrams (pipeline flow, engine flow, parity-harness flow,
+Console page structure) live in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 [`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
 runs the same commands on a daily schedule (and on demand), then opens or
@@ -181,3 +235,10 @@ telling an agent to append the content into `docs/BRIEF.md`,
 full application end to end. That instruction was **not** executed when this
 file was added to this repository — this branch holds the reference spec
 plus the demo scaffold only, not a built application.
+Each brief file also contains an instruction telling an agent to append the
+content into `docs/BRIEF.md`, `.github/copilot-instructions.md`, and
+`AGENTS.md`, then build and commit a full application end to end. Those
+instructions were **not** executed when these files were added to this
+repository — the three branches currently hold the reference specs plus a
+demo scaffold only, not a built application.
+
