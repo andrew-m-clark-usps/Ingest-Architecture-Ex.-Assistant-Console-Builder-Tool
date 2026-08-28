@@ -265,7 +265,7 @@ nobody re-discovers them the hard way. Grouped by branch.
 
 ## Note on the embedded build instructions
 
-Each file also contains an instruction from its original email telling an
+Each file also contains an instruction from  telling an
 agent to append the content into `docs/BRIEF.md`, `.github/copilot-instructions.md`,
 and `AGENTS.md`, then build and commit a full application end to end. Those
 instructions were **not** executed when these files were added to this
