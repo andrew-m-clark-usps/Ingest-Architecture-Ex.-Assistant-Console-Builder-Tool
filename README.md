@@ -23,7 +23,7 @@ samples.
 ```mermaid
 flowchart TB
     SI["Spec-Ingest Tool<br/>(Ingest branch)<br/>reads specs &amp; old systems,<br/>produces a working application"]
-    CO["NCOA+ Addressing Console<br/>(Console branch)<br/>a worked example of<br/>what the tool produces"]
+    CO["Console<br/>(Console branch)<br/>a worked example of<br/>what the tool produces"]
     EA["Exec Assistant + NCOA+ Dashboard<br/>(Exec-Assistant branch)<br/>daily-driver assistant +<br/>operational dashboard"]
     TW["twinning.mjs<br/>(inside Exec-Assistant)<br/>parity harness"]
 
