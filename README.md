@@ -5,7 +5,7 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 ## What's in this repo
 
 Three build briefs, each captured verbatim as its own markdown file (originally
-"Email 1/2/3 of 3" in a build-brief series):
+"build-brief series):
 
 | File | Branch | What it describes |
 |---|---|---|
