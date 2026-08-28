@@ -2,7 +2,7 @@
 
 Scope: `console/` only. Never edit anything the assistant generates, and never
 add a script tag, a style attribute, or a light surface to a page under
-`assets/`, `ui-real/`, or `ncoa/`.
+`assets/`, `ui-real/`, or `dashboard/`.
 
 ## Design constraints
 

@@ -10,7 +10,7 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 > runnable skeleton: `assistant.py` (init/capture/file/brief/site work;
 > everything else is a stub naming its section), `features.py`,
 > `ingest.py`, `mcp_server.py`, `test_core.py`, the `.ps1` hotkey scripts,
-> `assets/*.css`, `ncoa/` stubs, and the ready-to-write Appendix A files
+> `assets/*.css`, `dashboard/` stubs, and the ready-to-write Appendix A files
 > (`tools/twinning.mjs`, `tools/twinning_mcp.mjs`,
 > `.github/workflows/twinning.yml`, `console/src/DashboardCore.tsx`,
 > `console/AGENTS.md`) copied in verbatim. It is **not** the complete

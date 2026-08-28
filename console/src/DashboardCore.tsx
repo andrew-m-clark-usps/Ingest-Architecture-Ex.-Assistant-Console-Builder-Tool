@@ -3,7 +3,7 @@ import { LayoutDashboard, ChevronRight, Activity, Layers, Sparkles } from 'lucid
 
 // From Exec-Assistant.md Appendix A2 -- a separate product, its own
 // directory, stack, and build. Does not import assets/night.css, and
-// nothing under assets/, ui-real/, or ncoa/ imports this.
+// nothing under assets/, ui-real/, or dashboard/ imports this.
 
 export const DashboardCore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'logs'>('analytics')
