@@ -169,7 +169,7 @@ identifiers that must never leave a recording. Those are data. Reading,
 extraction and scoring are identical whether the subject is change-of-address
 processing or a warehouse.
 
-The Addressing Console is one thing it produces, not what it is. Nothing below is specific to
+The  Console is one thing it produces, not what it is. Nothing below is specific to
 any domain; the worked examples happen to be postal because that is where it
 was first used.
 
@@ -184,11 +184,7 @@ a fork.
 CLI + MCP
     Build it when: Always. Start here.
     What it adds: A person at a terminal, an agent mid-build, and a CI gate.
-Browser extension
-    Build it when: The sources are sites you can reach but not download.
-    What it adds: Capture as you browse, with no crawler, no credentials
-    handed to a script, and pages behind a login included because you are
-    logged in.
+
 Full-stack service
     Build it when: A team shares a corpus.
     What it adds: One upload instead of a file passed round, a corpus several
