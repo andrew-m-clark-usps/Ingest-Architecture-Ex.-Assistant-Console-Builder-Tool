@@ -1,0 +1,78 @@
+name: Daily health check
+
+# Demo/reference automation: runs build + npm audit for the Addressing
+# Console scaffold (console-app/) on this branch. Never writes code or
+# auto-implements roadmap items -- see docs/ROADMAP.md on main for planned
+# work, which stays human-driven. Opens or updates a single tracking issue
+# with the day's status; does not fail the workflow run just because one
+# step fails, so the issue reflects reality instead of only the first
+# failure.
+
+on:
+  schedule:
+    - cron: "20 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install
+        id: install
+        continue-on-error: true
+        working-directory: console-app
+        run: npm install
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        working-directory: console-app
+        run: npm run build
+
+      - name: Audit
+        id: audit
+        continue-on-error: true
+        working-directory: console-app
+        run: npm audit
+
+      - name: Build status report
+        id: report
+        if: always()
+        run: |
+          {
+            echo "### Daily health check — $(date -u +%Y-%m-%d) (Console)"
+            echo ""
+            echo "| Step | Result |"
+            echo "|---|---|"
+            echo "| console-app install | ${{ steps.install.outcome }} |"
+            echo "| console-app build | ${{ steps.build.outcome }} |"
+            echo "| console-app audit | ${{ steps.audit.outcome }} |"
+            echo ""
+            echo "_Automated report — no code was changed. See docs/ROADMAP.md on main for planned work._"
+          } > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update tracking issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="Daily health check (Console)"
+          NUMBER=$(gh issue list --search "$TITLE in:title" --state open --json number,title --jq '.[] | select(.title == "'"$TITLE"'") | .number' | head -n1)
+          if [ -z "$NUMBER" ]; then
+            gh issue create --title "$TITLE" --body-file report.md
+          else
+            gh issue edit "$NUMBER" --body-file report.md
+          fi
