@@ -53,10 +53,51 @@ flowchart LR
 
 ## Scaffold in this branch
 
-- `src/*.ts` — reader/corpus/profile logic (mostly stubs pointing back at the
-  brief section that specifies real behavior).
-- `cli.mjs`, `mcp.mjs` — CLI entry point and MCP server stub.
-- `tsconfig.json`, `Dockerfile`, `.dockerignore`, `.gitignore`.
+Phases 1–2, 4–6 of the roadmap are implemented for real (not stubs) — see
+[63 passing tests](test/) across 13 files:
+
+- **Readers** (`src/unzip.ts`, `src/pptx.ts`, `src/pdfText.ts`, `src/cmap.ts`) —
+  a real ZIP central-directory reader (stored + deflate, ZIP64 refused by
+  name), a real PPTX reader (`<a:t>` runs joined per `<a:p>`), and a real PDF
+  reader: object scanning (never the xref table), `/ObjStm` object-stream
+  expansion, `/ToUnicode` CMap decoding (`beginbfchar` and both `beginbfrange`
+  forms), BT/ET-scoped text extraction, line reconstruction from glyph
+  coordinates with word-spacing repair, and the two refusal guards (looks
+  like a scan; looks like a subsetted font with no usable CMap).
+- **Classification & corpus** (`src/specExtract.ts`, `src/specMerge.ts`,
+  `src/contradictions.ts`) — real line classification (rule/step/field/
+  heading/amount/date/version/endpoint) with dedupe; corpus merge that
+  unions sources for a repeated line; quantity/version/requiredness
+  contradiction detection tuned to under-report.
+- **Recorded sessions** (`src/journalSpec.ts`) — reads `meta.json`/
+  `fields.json`/`ax-tree.json`/`styles.json` per step, drops query strings,
+  only counts an explicitly-declared state, and a malformed artifact never
+  fails the whole read.
+- **Reconciliation** (`src/reconcile.ts`) — label matching with parenthetical
+  stripping and an explicit synonym table, never a stemmer or fuzzy distance.
+- **Profiles** (`src/profiles/`) — `validateProfile` rejects a profile with
+  no sections or a section with no source kinds, per section 8.
+- **Inference guardrail** (`src/inference.ts`) — `--no-ml` is the default;
+  a parity test asserts every deterministic candidate is present,
+  byte-identical, when a (locally-defined, non-provider) model is enabled.
+- **Repository generation** (`src/generate.ts`) — writes a real
+  application + test + CI workflow + Terraform (no defaults on
+  environment-specific variables); the generated app is type-checked in CI,
+  not just generated.
+- **Image/OCR reader shape** (`src/imageReader.ts`) — the confidence/region/
+  audit-log contract from section 5C, with a pluggable `OcrEngine`; no OCR
+  engine is bundled (zero runtime dependencies), so a caller must inject a
+  pinned one.
+- `cli.mjs`, `mcp.mjs` — both wired to the real readers above (not the
+  placeholder "would read" scaffold): the CLI reads real `.pdf`/`.pptx`
+  files and prints coverage + contradictions; the MCP server implements all
+  four tools (`read_spec_document`, `score_corpus`, `list_profiles`,
+  `reconcile`) with refusals returned as `isError: true` tool results.
+- **Not yet implemented**: the running-system Playwright capture script
+  (section 5E), the API-spec/OpenAPI reader (section 6A), spreadsheet
+  reader (section 5A), codebase reader (section 5B), and a real pinned OCR
+  engine — see [`main`](https://github.com/andrew-m-clark-usps/Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool/blob/main/docs/ROADMAP.md)
+  for the roadmap.
 - Zero runtime dependencies by design (only `devDependencies`).
 
 **Build / test:**
@@ -65,6 +106,7 @@ flowchart LR
 npm install
 npm run build   # tsc -p tsconfig.json
 npm test        # vitest run
+node cli.mjs your-file.pdf   # real end-to-end read + coverage report
 ```
 
 **Docker:** `docker build -t spec-ingest-scaffold .`
@@ -172,6 +214,16 @@ or sensitive document.
 - Two refusal guards matter more than the parsing logic: almost-no-text for
   the page count means a scan (OCR needed, not a parse bug); >~40%
   single-character tokens means a subsetted font with no usable CMap.
+- Confirmed while implementing the word-spacing repair above: a naive
+  "rejoin a short fragment to the following lowercase word" regex applied
+  to the *final* reconstructed line will happily eat real spaces too — "The
+  form must be retained" became "Theform must beretained" because "The"
+  and "be" are short words followed by a lowercase word, exactly like a
+  genuine glyph-gap fragment. The fix is to mark only the spaces this
+  reader *estimated* from a coordinate gap with a sentinel before running
+  repair, and never touch a space that was already literally in the source
+  string — the brief's "never reconsider a confident space" rule has to be
+  enforced structurally, not by re-guessing from the output text.
 
 ## Note on the embedded build instructions
 
