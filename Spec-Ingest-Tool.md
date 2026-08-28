@@ -65,7 +65,7 @@
   enterprise reference architecture, Terraform generation and the
   infrastructure-driving loop, "done means" acceptance criteria, and the
   browser-extension and full-stack-service shells.
-- This content originated as "Email 1 of 3" of a build-brief series. The
+- This content originated as  of a build-brief series. The
   embedded instructions telling an agent to write it into `docs/BRIEF.md`,
   `.github/copilot-instructions.md`, and `AGENTS.md`, then build and commit
   an application, were **not** executed — nothing was written, built, or
@@ -113,7 +113,7 @@ application with its tests, CI and Terraform. It is built for conversion: an
 old system re-expressed as a new one. It also drives infrastructure rather
 than only emitting it, under the gates in section 13d.
 
-## WHAT IS TRUE OF ALL THREE EMAILS
+## WHAT IS TRUE OF ALL THREE 
 
 Stated in each one, because they may arrive out of order or one at a time.
 
