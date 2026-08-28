@@ -11,7 +11,17 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 > the complete implementation described by the brief's "done means" section —
 > most functions throw `not implemented` and point back at the section that
 > specifies the real behavior. Build with `npm install && npm run build`;
-> run with `docker build -t spec-ingest-scaffold .`.
+![status](https://img.shields.io/badge/status-demo%2Freference-yellow)
+![node](https://img.shields.io/badge/node-%3E%3D20-green)
+
+> **Demo / reference scaffold.** This branch (`Console`) contains the full
+> brief in [`Console.md`](Console.md) plus a minimal, runnable React/Vite/MUI
+> skeleton under [`console-app/`](console-app/) (kept in its own subdirectory
+> because this branch's root also carries the Ingest tool's `package.json`/
+> `src/` from an earlier merge). It is **not** the complete implementation
+> described by the brief's "done means" section. Build with
+> `cd console-app && npm install && npm run build`; run with
+> `docker build -t addressing-console-scaffold console-app`.
 ## What's in this repo
 
 Three build briefs, each captured verbatim as its own markdown file (originally
