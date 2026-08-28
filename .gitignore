@@ -11,3 +11,5 @@ brief.md
 node_modules/
 dist/
 *.log
+__pycache__/
+*.pyc

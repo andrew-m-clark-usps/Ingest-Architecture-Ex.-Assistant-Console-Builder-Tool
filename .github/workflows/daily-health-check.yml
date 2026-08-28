@@ -1,5 +1,16 @@
 name: Daily health check
 
+# Demo/reference automation: runs build + test + npm audit for the
+# Spec-Ingest Tool scaffold on this branch. Never writes code or
+# auto-implements roadmap items -- see docs/ROADMAP.md on main for planned
+# work, which stays human-driven. Opens or updates a single tracking issue
+# with the day's status; does not fail the workflow run just because one
+# step fails, so the issue reflects reality instead of only the first
+# failure.
+
+on:
+  schedule:
+    - cron: "10 6 * * *"
 # Demo/reference automation: runs build + test + npm audit across every
 # product carried on this branch (main is the integration branch and holds
 # all three: Ingest tool, Addressing Console, Exec-Assistant + dashboard +
@@ -30,6 +41,24 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Install
+        id: install
+        continue-on-error: true
+        run: npm install
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Test
+        id: test
+        continue-on-error: true
+        run: npm test
+
+      - name: Audit
+        id: audit
+        continue-on-error: true
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -107,6 +136,16 @@ jobs:
         if: always()
         run: |
           {
+            echo "### Daily health check — $(date -u +%Y-%m-%d) (Ingest)"
+            echo ""
+            echo "| Step | Result |"
+            echo "|---|---|"
+            echo "| install | ${{ steps.install.outcome }} |"
+            echo "| build | ${{ steps.build.outcome }} |"
+            echo "| test | ${{ steps.test.outcome }} |"
+            echo "| audit | ${{ steps.audit.outcome }} |"
+            echo ""
+            echo "_Automated report — no code was changed. See docs/ROADMAP.md on main for planned work._"
             echo "### Daily health check — $(date -u +%Y-%m-%d) (main)"
             echo ""
             echo "| Product | Step | Result |"
@@ -135,6 +174,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          TITLE="Daily health check (Ingest)"
           TITLE="Daily health check (main)"
           NUMBER=$(gh issue list --search "$TITLE in:title" --state open --json number,title --jq '.[] | select(.title == "'"$TITLE"'") | .number' | head -n1)
           if [ -z "$NUMBER" ]; then
