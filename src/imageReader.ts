@@ -27,6 +27,9 @@ export interface OcrLine {
 export interface OcrEngine {
   readonly name: string
   readonly version: string
+  /** A checksum of the pinned engine/model (e.g. of its traineddata file) — an
+   *  engine upgrade changes output, and the audit log must be able to show that it did. */
+  readonly checksum?: string
   recognize(bytes: Uint8Array): Promise<OcrLine[]>
 }
 
@@ -55,11 +58,12 @@ export async function readImage(bytes: Uint8Array, engine: OcrEngine, ref: strin
   const lines = await engine.recognize(bytes)
   return lines.map((line) => {
     const needsReview = line.confidence < LOW_CONFIDENCE_THRESHOLD || DIGIT_UNIT_VERSION_RE.test(line.text)
+    const checksumSuffix = engine.checksum ? `, checksum ${engine.checksum}` : ''
     return {
       kind: classifyOcrLine(line.text),
       text: line.text,
       ref,
-      because: `OCR (${engine.name} v${engine.version}), confidence ${line.confidence.toFixed(2)}${
+      because: `OCR (${engine.name} v${engine.version}${checksumSuffix}), confidence ${line.confidence.toFixed(2)}${
         needsReview ? ' — flagged for review' : ''
       }`,
       confidence: line.confidence,

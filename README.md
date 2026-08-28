@@ -53,8 +53,8 @@ flowchart LR
 
 ## Scaffold in this branch
 
-Phases 1–2, 4–6 of the roadmap are implemented for real (not stubs) — see
-[63 passing tests](test/) across 13 files:
+All six roadmap phases are implemented for real (not stubs) — see
+[103 passing tests](test/) across 19 files:
 
 - **Readers** (`src/unzip.ts`, `src/pptx.ts`, `src/pdfText.ts`, `src/cmap.ts`) —
   a real ZIP central-directory reader (stored + deflate, ZIP64 refused by
@@ -64,6 +64,23 @@ Phases 1–2, 4–6 of the roadmap are implemented for real (not stubs) — see
   forms), BT/ET-scoped text extraction, line reconstruction from glyph
   coordinates with word-spacing repair, and the two refusal guards (looks
   like a scan; looks like a subsetted font with no usable CMap).
+- **Spreadsheet reader** (`src/xlsx.ts`) — shared-strings resolution, cell
+  position from the `r` attribute (never element order), merged-cell value
+  carry-across, formula cache read (never recomputed), and a two-column
+  old-name/new-name sheet classified as a mapping.
+- **Codebase reader** (`src/codebaseReader.ts`) — walks a checkout (skipping
+  `node_modules`/`dist`/generated output), extracts route declarations
+  (Express/NestJS/Flask-style), config KEY NAMES only (never values),
+  enum/validator-decorator rules, test names, `CREATE TABLE` schemas, and
+  flags TODOs/commented-out code as questions rather than rules — with
+  credential-shaped literals redacted before anything is extracted.
+- **OpenAPI/Swagger reader** (`src/openapi.ts`, `src/yamlSubset.ts`) — a
+  hand-written YAML subset parser (nested maps, sequences, flow collections,
+  comments; anchors/aliases/tags/block-scalars/multi-doc/tab-indentation are
+  refused BY NAME, never partially parsed — no YAML dependency, per section
+  6A) feeding an OpenAPI 3.x/Swagger 2.0 reader: one candidate per operation,
+  every 4xx/5xx response as a rule, security schemes as rules, `$ref`
+  resolved with a depth limit so a circular schema cannot hang the reader.
 - **Classification & corpus** (`src/specExtract.ts`, `src/specMerge.ts`,
   `src/contradictions.ts`) — real line classification (rule/step/field/
   heading/amount/date/version/endpoint) with dedupe; corpus merge that
@@ -73,6 +90,22 @@ Phases 1–2, 4–6 of the roadmap are implemented for real (not stubs) — see
   `fields.json`/`ax-tree.json`/`styles.json` per step, drops query strings,
   only counts an explicitly-declared state, and a malformed artifact never
   fails the whole read.
+- **Running-system capture** (`capture/`, a separate subpackage — see
+  [`capture/README.md`](capture/README.md)) — a real Playwright script
+  (accessibility snapshot, form structure, network capture reduced to
+  structure only, console/page errors, computed styles, screenshot, same-
+  origin link crawl) writing the exact directory shape `journalSpec.ts`
+  reads. The redaction/structure-stripping logic (never an Authorization
+  header, cookie, or request value) is unit tested; the live-browser path
+  itself could **not** be verified end to end in this sandboxed environment
+  (Chromium download blocked by the network) — documented honestly rather
+  than assumed.
+- **Local pinned OCR engine** (`ocr/`, a separate subpackage — see
+  [`ocr/README.md`](ocr/README.md)) — a real `tesseract.js` integration
+  pinned to an exact version, implementing `imageReader.ts`'s `OcrEngine`
+  interface. The result-mapping logic is unit tested; an actual OCR
+  recognition run could **not** be verified end to end here either (its
+  trained-data CDN download was also blocked) — same honesty applied.
 - **Reconciliation** (`src/reconcile.ts`) — label matching with parenthetical
   stripping and an explicit synonym table, never a stemmer or fuzzy distance.
 - **Profiles** (`src/profiles/`) — `validateProfile` rejects a profile with
@@ -84,21 +117,15 @@ Phases 1–2, 4–6 of the roadmap are implemented for real (not stubs) — see
   application + test + CI workflow + Terraform (no defaults on
   environment-specific variables); the generated app is type-checked in CI,
   not just generated.
-- **Image/OCR reader shape** (`src/imageReader.ts`) — the confidence/region/
-  audit-log contract from section 5C, with a pluggable `OcrEngine`; no OCR
-  engine is bundled (zero runtime dependencies), so a caller must inject a
-  pinned one.
 - `cli.mjs`, `mcp.mjs` — both wired to the real readers above (not the
   placeholder "would read" scaffold): the CLI reads real `.pdf`/`.pptx`
   files and prints coverage + contradictions; the MCP server implements all
   four tools (`read_spec_document`, `score_corpus`, `list_profiles`,
   `reconcile`) with refusals returned as `isError: true` tool results.
-- **Not yet implemented**: the running-system Playwright capture script
-  (section 5E), the API-spec/OpenAPI reader (section 6A), spreadsheet
-  reader (section 5A), codebase reader (section 5B), and a real pinned OCR
-  engine — see [`main`](https://github.com/andrew-m-clark-usps/Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool/blob/main/docs/ROADMAP.md)
-  for the roadmap.
-- Zero runtime dependencies by design (only `devDependencies`).
+- The core package (`src/`, `cli.mjs`, `mcp.mjs`) keeps zero runtime
+  dependencies by design (only `devDependencies`); `capture/` and `ocr/`
+  are separate subpackages with their own `package.json` precisely so that
+  invariant stays true for the core reader/corpus/profile library.
 
 **Build / test:**
 
@@ -224,6 +251,26 @@ or sensitive document.
   repair, and never touch a space that was already literally in the source
   string — the brief's "never reconsider a confident space" rule has to be
   enforced structurally, not by re-guessing from the output text.
+- The hand-written YAML-subset parser's recursive descent has one easy
+  trap: using a synthetic "indent + 1" for a nested block's expected
+  indentation instead of the *actual* indent of the next line. Real files
+  indent nested maps by 2 (or 4) spaces, not 1, so `indent + 1` never
+  matches and every nested map silently parses as `null`. The fix reads
+  the child block's indent directly off `lines[i + 1].indent`, only
+  recursing when it is strictly deeper than the parent's.
+- A single `---` line means two different things depending on position: a
+  harmless leading document marker if nothing has been parsed yet, or an
+  actual second YAML document (which this subset refuses) if it appears
+  after real content. Refusing on the *first* `---` unconditionally breaks
+  the (extremely common) case of a spec file that simply starts with one.
+- Neither the Playwright running-system capture script (`capture/`) nor the
+  local pinned OCR engine (`ocr/`) could be verified end to end against a
+  real browser or a real image in this sandboxed environment — both need a
+  CDN download (Chromium; tesseract.js's trained-data file) that a
+  corporate proxy blocks here. Each package's safety-critical *pure* logic
+  (network redaction/structure-stripping; OCR result-shape mapping) is
+  unit tested regardless, since neither depends on the network — but the
+  live paths are documented as unverified rather than assumed to work.
 
 ## Note on the embedded build instructions
 

@@ -1,0 +1,13 @@
+{
+  "name": "spec-ingest-capture",
+  "version": "0.1.0-demo",
+  "private": true,
+  "description": "DEMO/REFERENCE SCAFFOLD for the section 5E running-system capture script. Separate from the core spec-ingest-tool package, which ships with zero runtime dependencies -- Playwright runs on Node at capture time only and ships in nothing (see Spec-Ingest-Tool.md section 2/7A).",
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

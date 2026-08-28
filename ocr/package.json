@@ -1,0 +1,16 @@
+{
+  "name": "spec-ingest-ocr",
+  "version": "0.1.0-demo",
+  "private": true,
+  "description": "DEMO/REFERENCE SCAFFOLD: a real, pinned local OCR engine implementing the OcrEngine interface from src/imageReader.ts (see Spec-Ingest-Tool.md section 5C/7A). Separate from the core spec-ingest-tool package, which ships with zero runtime dependencies -- a local pinned ML model is explicitly allowed by section 7A, but it stays out of the core package's own dependency tree.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "tesseract.js": "5.1.1"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}
