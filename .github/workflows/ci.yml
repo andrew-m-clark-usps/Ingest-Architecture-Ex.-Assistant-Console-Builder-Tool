@@ -1,0 +1,55 @@
+name: CI
+
+# Runs on every push and pull request that touches this branch. Unlike
+# daily-health-check.yml (scheduled, always green, reports status via a
+# tracking issue), this workflow fails the run — and blocks a PR merge — on
+# any real failure. It never writes code; it only validates what a human
+# already wrote/changed. See twinning.yml for the separate live parity-
+# harness run against a legacy/modern URL pair.
+
+on:
+  push:
+    branches: [Exec-Assistant]
+  pull_request:
+    branches: [Exec-Assistant]
+
+permissions:
+  contents: read
+
+jobs:
+  assistant-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest test_core -v
+
+  parity-harness-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm audit
+
+  react-console-appendix-audit:
+    runs-on: ubuntu-latest
+    # console/ holds only the Appendix A2 component + docs, no wired entry
+    # point (no index.html/main.tsx) — install + audit only, no build.
+    defaults:
+      run:
+        working-directory: console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm audit
