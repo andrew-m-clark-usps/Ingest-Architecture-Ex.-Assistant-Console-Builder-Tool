@@ -54,6 +54,18 @@ builds, passes its tests, and has no new vulnerabilities.
 > dangling job keys, mixed titles). Cut new branches from and merge back
 > into the branch that owns the file you're changing instead.
 
+## What the tool does: old infrastructure to new infrastructure
+
+![Old infrastructure to new infrastructure, via the Spec-Ingest Tool](docs/images/old-to-new-infrastructure.png)
+
+The Spec-Ingest Tool reads whatever exists today — a legacy application,
+manual deploys, no tests, tribal knowledge scattered across decks/PDFs/
+spreadsheets/chat threads — and produces a new repository: application,
+test suite, CI workflow, Terraform, and an audit log, with no model/
+provider SDK/API key in anything shipped. The parity harness
+(`tools/twinning.mjs`) then verifies the rebuild against the original so
+"new" is proven to behave like "old," not just assumed to.
+
 ## What's in this repo
 
 | Product | Branch | What it describes |
