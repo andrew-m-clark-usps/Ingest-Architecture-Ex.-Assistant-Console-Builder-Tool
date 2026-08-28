@@ -5,130 +5,41 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 ![status](https://img.shields.io/badge/status-demo%2Freference-yellow)
 ![node](https://img.shields.io/badge/node-%3E%3D20-green)
 
-> **Demo / reference scaffold.** This branch (`Ingest`) contains the full
-> brief in [`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) plus a minimal,
-> runnable code skeleton under `src/`, `cli.mjs`, and `mcp.mjs`. It is **not**
-> the complete implementation described by the brief's "done means" section —
-> most functions throw `not implemented` and point back at the section that
-> specifies the real behavior. Build with `npm install && npm run build`;
-![status](https://img.shields.io/badge/status-demo%2Freference-yellow)
-![node](https://img.shields.io/badge/node-%3E%3D20-green)
+> **Integration branch.** `main` carries all three products together (the
+> Ingest tool's `src/`/`cli.mjs`/`mcp.mjs`, the Console's `console-app/`, and
+> the Exec-Assistant's `assistant.py`/`dashboard/`/`tools/`/`console/`). Each
+> product also lives on its own trimmed branch — see the table below and
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). None of the scaffolds are
+> the complete implementation described by their brief's "done means"
+> section — most functions throw `not implemented` and point back at the
+> section that specifies the real behavior.
 
-> **Demo / reference scaffold.** This branch (`Console`) contains the full
-> brief in [`Console.md`](Console.md) plus a minimal, runnable React/Vite/MUI
-> skeleton under [`console-app/`](console-app/) (kept in its own subdirectory
-> because this branch's root also carries the Ingest tool's `package.json`/
-> `src/` from an earlier merge). It is **not** the complete implementation
-> described by the brief's "done means" section. Build with
-> `cd console-app && npm install && npm run build`; run with
-> `docker build -t addressing-console-scaffold console-app`.
+## Documentation
+
+See [`docs/`](docs/) for the full documentation set:
+
+| Doc | Purpose |
+|---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the three products relate, pipeline/flow diagrams, shared invariants. |
+| [`docs/Spec-Ingest-Tool.md`](docs/Spec-Ingest-Tool.md) | Full brief for the Spec-Ingest Tool (`Ingest` branch). |
+| [`docs/Console.md`](docs/Console.md) | Full brief for the Addressing Console (`Console` branch). |
+| [`docs/Exec-Assistant.md`](docs/Exec-Assistant.md) | Full brief for the Assistant + Dashboard + Parity Harness (`Exec-Assistant` branch). |
+| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | Ground rules for working in this repo. |
+| [`SECURITY.md`](SECURITY.md) | Security policy (kept at repo root — GitHub looks for it there). |
+
 ## What's in this repo
 
-Three build briefs, each captured verbatim as its own markdown file (originally
-"build-brief series):
-
-| File | Branch | What it describes |
+| Product | Branch | What it describes |
 |---|---|---|
-| [`Spec-Ingest-Tool.md`](Spec-Ingest-Tool.md) | `Ingest` | The tool that builds the other two. Give it decks, PDFs, spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running system, and it produces a working application with tests, CI, and Terraform. |
-| [`Console.md`](Console.md) | `Console` | Addressing Console — the worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
-| [`Exec-Assistant.md`](Exec-Assistant.md) | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the Console operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
+| Spec-Ingest Tool | `Ingest` | The tool that builds the other two. Give it decks, PDFs, spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running system, and it produces a working application with tests, CI, and Terraform. |
+| Addressing Console | `Console` | The worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
+| Assistant + Dashboard + Parity Harness | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the Console operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
 
-Each file starts with a condensed `## Instructions` section (the key rules
-distilled into bullets) followed by `## Additional Guidelines`, which carries
-the full original brief verbatim — including its ASCII diagrams and code
-samples.
-
-## How the three relate
-
-```mermaid
-flowchart TB
-    SI["Spec-Ingest Tool<br/>(Ingest branch)<br/>reads specs &amp; old systems,<br/>produces a working application"]
-    CO["Addressing Console<br/>(Console branch)<br/>a worked example of<br/>what the tool produces"]
-    EA["Exec Assistant + Console Dashboard<br/>(Exec-Assistant branch)<br/>daily-driver assistant +<br/>operational dashboard"]
-    TW["twinning.mjs<br/>(inside Exec-Assistant)<br/>parity harness"]
-
-    SI -->|produces / rebuilds| CO
-    SI -->|produces / rebuilds| EA
-    TW -->|proves a rebuild of| CO
-    TW -->|proves a rebuild of| EA
-    EA -.->|ships the harness used by| TW
-```
-
-### Spec-Ingest pipeline (Ingest branch)
-
-```mermaid
-flowchart LR
-    subgraph Sources
-      A1[Deck .pptx]
-      A2[PDF]
-      A3[Spreadsheet .xlsx]
-      A4[API spec OpenAPI]
-      A5[Backlog / stories]
-      A6[Image / screenshot]
-      A7[Codebase]
-      A8[Running system]
-    end
-    R["Readers<br/>claim by content, never by extension"]
-    C["Candidate<br/>{ kind, text, ref, because }"]
-    CORP["Corpus<br/>merge + dedupe + contradictions"]
-    P["Profile / architecture<br/>inferred, not authored"]
-    OUT["Repository:<br/>app, tests, CI, Terraform, README"]
-
-    A1 & A2 & A3 & A4 & A5 & A6 & A7 & A8 --> R --> C --> CORP --> P --> OUT
-```
-
-### Exec-Assistant engine flow (Exec-Assistant branch)
-
-```mermaid
-flowchart TD
-    H1["Ctrl+Alt+C / Ctrl+Alt+N /<br/>mcp capture / gh issue / note line"]
-    IN["inbox/*.md<br/>one file per capture"]
-    F["file: classify_rules<br/>date resolved? strip phrase, set due"]
-    ST["people/&lt;name&gt;.md and tasks.md<br/>I owe / Waiting on / Done"]
-    B["brief: brief.md"]
-    E["eod: sweep closures, roll overdue<br/>(count++, date never moves)"]
-    W["week: weekly.md"]
-    S["site: 8 static pages, no script, dark only"]
-
-    H1 --> IN --> F --> ST
-    ST --> B
-    ST --> E
-    ST --> W
-    ST --> S
-```
-
-### Parity harness — twinning.mjs (Exec-Assistant branch)
-
-```mermaid
-flowchart LR
-    L["Legacy URL"] --> D1["Drive scripted flow<br/>(selectors from inventory)"]
-    M["Modern URL"] --> D2["Drive same flow<br/>(selectors: data-testid)"]
-    D1 --> CMP{{Compare}}
-    D2 --> CMP
-    CMP -->|"1. named value"| V["Behaviour drift"]
-    CMP -->|"2. console/page errors"| ER["Renders but throws"]
-    CMP -->|"3. element count"| OM["Over-mutation"]
-    CMP -->|"4. screenshots"| SS["Everything else, for a person"]
-    V & ER & OM & SS --> RES{{Result}}
-    RES -->|pass| OK["exit 0, no telemetry written"]
-    RES -->|fail| FAIL["exit non-zero,<br/>artifacts/twinning/telemetry.json"]
-```
-
-### Addressing Console sections (Console branch)
-
-```mermaid
-flowchart TD
-    Root["Sidebar / BrowserRouter"] --> Hub
-    Root --> Gateway["Gateway (BCG model)"]
-    Root --> Usage["Usage &amp; reporting<br/>(projected invoice)"]
-    Root --> Ledger["Payment ledger"]
-    Root --> COA["Change-of-address workbench"]
-    Root --> Validator["Address validator"]
-    Root --> Reports
-    Root --> Sources["Data sources"]
-    Root --> PAF["PAF &amp; licensing"]
-    Root --> Reference
-```
+Each brief file starts with a condensed `## Instructions` section (the key
+rules distilled into bullets) followed by `## Additional Guidelines`, which
+carries the full original brief verbatim — including its ASCII diagrams and
+code samples. Full diagrams (pipeline flow, engine flow, parity-harness flow,
+Console page structure) live in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Shared invariants across all three
 
@@ -285,10 +196,10 @@ nobody re-discovers them the hard way. Grouped by branch.
 
 ## Note on the embedded build instructions
 
-Each file also contains an instruction from  telling an
-agent to append the content into `docs/BRIEF.md`, `.github/copilot-instructions.md`,
-and `AGENTS.md`, then build and commit a full application end to end. Those
+Each brief file also contains an instruction telling an agent to append the
+content into `docs/BRIEF.md`, `.github/copilot-instructions.md`, and
+`AGENTS.md`, then build and commit a full application end to end. Those
 instructions were **not** executed when these files were added to this
-repository — the three branches currently hold the reference specs only, not
-a built application.
+repository — the three branches currently hold the reference specs plus a
+demo scaffold only, not a built application.
 
