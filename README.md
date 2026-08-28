@@ -70,10 +70,16 @@ npm run dev     # vite dev server
 
 ## Automation
 
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push
+and pull request touching this branch: `console-app`'s
+`npm install`/`build`/`lint`/`audit`, failing the run (and blocking a PR) on
+any real failure — no code is generated.
+
 [`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
-runs `console-app`'s `npm install`/`build`/`audit` on a daily schedule (and
-on demand), then opens or updates a single tracking issue with the day's
-status. It never writes code — see `docs/ROADMAP.md` on
+runs `console-app`'s install/build/audit on a daily schedule (and on
+demand), then opens or updates a single tracking issue with the day's
+status instead of failing. **Neither workflow writes or auto-implements
+code** — see `docs/ROADMAP.md` on
 [`main`](https://github.com/andrew-m-clark-usps/Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool/blob/main/docs/ROADMAP.md)
 for the human-driven feature timeline this branch works from.
 
