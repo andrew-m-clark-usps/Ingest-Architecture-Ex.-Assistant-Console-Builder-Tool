@@ -30,15 +30,20 @@ See [`docs/`](docs/) for the full documentation set:
 
 ## Automation
 
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and
+pull request touching `main`: install/build/test/lint/`npm audit` for every
+product on this branch, failing the run (and blocking a PR) on any real
+failure — no code is generated.
+
 [`.github/workflows/daily-health-check.yml`](.github/workflows/daily-health-check.yml)
 runs on a daily schedule (and on demand) on `main` and on each of the three
 product branches. It installs, builds, tests, and runs `npm audit` (and
 `python -m unittest` where applicable) for every product carried on that
 branch, then opens or updates a single tracking issue with the day's status.
-**It never writes or auto-implements code** — that would conflict with this
-repo's own "no model/model-provider SDK/API key in anything shipped"
-invariant. Roadmap work in [`docs/ROADMAP.md`](docs/ROADMAP.md) stays
-human-driven; the workflow only reports whether the current state still
+**Neither workflow writes or auto-implements code** — that would conflict
+with this repo's own "no model/model-provider SDK/API key in anything
+shipped" invariant. Roadmap work in [`docs/ROADMAP.md`](docs/ROADMAP.md)
+stays human-driven; automation only reports whether the current state still
 builds, passes its tests, and has no new vulnerabilities.
 
 ## What's in this repo
