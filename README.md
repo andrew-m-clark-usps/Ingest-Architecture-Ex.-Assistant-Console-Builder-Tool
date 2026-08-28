@@ -118,10 +118,14 @@ All six roadmap phases are implemented for real (not stubs) — see
   environment-specific variables); the generated app is type-checked in CI,
   not just generated.
 - `cli.mjs`, `mcp.mjs` — both wired to the real readers above (not the
-  placeholder "would read" scaffold): the CLI reads real `.pdf`/`.pptx`
-  files and prints coverage + contradictions; the MCP server implements all
-  four tools (`read_spec_document`, `score_corpus`, `list_profiles`,
-  `reconcile`) with refusals returned as `isError: true` tool results.
+  placeholder "would read" scaffold): `node cli.mjs <files-or-dirs...>`
+  claims each argument by content (a directory is read as a codebase; a
+  ZIP is peeked to tell `.pptx` from `.xlsx`; JSON/YAML is only claimed as
+  OpenAPI/Swagger if it declares that version key) and prints coverage +
+  contradictions across all of them in one run. The MCP server implements
+  all four tools (`read_spec_document`, `score_corpus`, `list_profiles`,
+  `reconcile`) with refusals returned as `isError: true` tool results
+  (currently `.pdf`/`.pptx` only, matching its narrower brief scope).
 - The core package (`src/`, `cli.mjs`, `mcp.mjs`) keeps zero runtime
   dependencies by design (only `devDependencies`); `capture/` and `ocr/`
   are separate subpackages with their own `package.json` precisely so that
@@ -133,7 +137,7 @@ All six roadmap phases are implemented for real (not stubs) — see
 npm install
 npm run build   # tsc -p tsconfig.json
 npm test        # vitest run
-node cli.mjs your-file.pdf   # real end-to-end read + coverage report
+node cli.mjs your-file.pdf your-deck.pptx your-sheet.xlsx your-api.yaml ./some-repo
 ```
 
 **Docker:** `docker build -t spec-ingest-scaffold .`
