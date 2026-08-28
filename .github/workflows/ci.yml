@@ -1,0 +1,29 @@
+name: CI
+
+# Runs on every push and pull request that touches this branch. Unlike
+# daily-health-check.yml (scheduled, always green, reports status via a
+# tracking issue), this workflow fails the run — and blocks a PR merge — on
+# any real failure. It never writes code; it only validates what a human
+# already wrote/changed.
+
+on:
+  push:
+    branches: [Ingest]
+  pull_request:
+    branches: [Ingest]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - run: npm run build
+      - run: npm test
+      - run: npm audit
