@@ -11,23 +11,11 @@ on:
     branches: [Ingest]
   pull_request:
     branches: [Ingest]
-# Runs on every push and pull request that touches main. Unlike
-# daily-health-check.yml (scheduled, always green, reports status via a
-# tracking issue), this workflow fails the run — and blocks a PR merge — on
-# any real failure. It never writes code; it only validates what a human
-# already wrote/changed. See docs/CONTRIBUTING.md.
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
-  build-test-audit:
   ingest-tool:
     runs-on: ubuntu-latest
     steps:
@@ -39,55 +27,9 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm audit
-
-  addressing-console:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: console-app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm install
-      - run: npm run build
-      - run: npm run lint
-      - run: npm audit
-
-  exec-assistant:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: python -m unittest test_core -v
-
-  parity-harness:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tools
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm install
-      - run: npm audit
-
-  react-console-appendix:
-    runs-on: ubuntu-latest
-    # console/ holds only the Appendix A2 component + docs, no wired entry
-    # point (no index.html/main.tsx) — install + audit only, no build.
-    defaults:
-      run:
-        working-directory: console
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm install
-      - run: npm audit
+      # ui/ is a separate zero-dependency subpackage (see ui/README.md) —
+      # no npm install needed for it, just a syntax check and a real image
+      # build so a Dockerfile regression is caught here, not only by hand.
+      - run: node --check ingestRunner.mjs
+      - run: node --check ui/server.mjs
+      - run: docker build -f ui/Dockerfile -t spec-ingest-ui-ci .

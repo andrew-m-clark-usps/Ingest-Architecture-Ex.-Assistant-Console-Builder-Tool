@@ -1,0 +1,10 @@
+{
+  "name": "spec-ingest-ui",
+  "version": "0.1.0-demo",
+  "private": true,
+  "description": "Lightweight browser UI shell for the Spec-Ingest Tool. Zero runtime dependencies (node:http only) — see ../AGENTS.md and Spec-Ingest-Tool.md section 1A.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}

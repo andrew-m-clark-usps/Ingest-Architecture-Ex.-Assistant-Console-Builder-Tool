@@ -125,7 +125,20 @@ All six roadmap phases are implemented for real (not stubs) — see
   contradictions across all of them in one run. The MCP server implements
   all four tools (`read_spec_document`, `score_corpus`, `list_profiles`,
   `reconcile`) with refusals returned as `isError: true` tool results
-  (currently `.pdf`/`.pptx` only, matching its narrower brief scope).
+  (currently `.pdf`/`.pptx` only, matching its narrower brief scope). The
+  actual sniff-and-read loop lives in `ingestRunner.mjs`, shared by both
+  `cli.mjs` and the browser UI below so the two shells can't drift apart.
+- **Browser UI** (`ui/`, a separate zero-dependency subpackage — see
+  [`ui/README.md`](ui/README.md)) — the "full-stack service" delivery shape
+  from section 1A, scoped to its simplest useful form: mount a directory,
+  open a page, pick a file (or "run all"), read the same report the CLI
+  prints, server-rendered as HTML with no client-side JavaScript. No file
+  upload and no path ever taken from a request — only a name checked
+  against a listing the server just read itself, so there is no
+  path-traversal surface. Every value derived from a document (a path, an
+  error message, a contradiction's claim/ref) is HTML-escaped before it
+  reaches a response, since this is the first place in this scaffold that
+  renders untrusted document content into an actual browser.
 - The core package (`src/`, `cli.mjs`, `mcp.mjs`) keeps zero runtime
   dependencies by design (only `devDependencies`); `capture/` and `ocr/`
   are separate subpackages with their own `package.json` precisely so that
@@ -140,7 +153,16 @@ npm test        # vitest run
 node cli.mjs your-file.pdf your-deck.pptx your-sheet.xlsx your-api.yaml ./some-repo
 ```
 
-**Docker:** `docker build -t spec-ingest-scaffold .`
+**Docker (CLI):** `docker build -t spec-ingest-scaffold .`
+
+**Docker (browser UI):**
+
+```bash
+docker build -f ui/Dockerfile -t spec-ingest-ui .
+docker run --rm -p 8787:8787 -v /path/to/your/files:/data spec-ingest-ui
+```
+
+Then open <http://localhost:8787>. See [`ui/README.md`](ui/README.md).
 
 ## Automation
 
@@ -275,6 +297,15 @@ or sensitive document.
   (network redaction/structure-stripping; OCR result-shape mapping) is
   unit tested regardless, since neither depends on the network — but the
   live paths are documented as unverified rather than assumed to work.
+- Both `.github/workflows/ci.yml` and `daily-health-check.yml` on this
+  branch had picked up `main`'s full multi-product content appended after
+  this branch's own — a duplicate `on:` key (silently discarding this
+  branch's own trigger in favor of `main`'s, so CI never actually ran on a
+  push here), an orphan job key with no body, and jobs for
+  `console-app`/`console`/`tools` directories that don't exist on this
+  branch. Caught by reading the files, not by a failure notification —
+  both rewritten to cover only this branch's own product, now with the
+  `ui/` subpackage's Docker build added as a real CI step.
 
 ## Note on the embedded build instructions
 
