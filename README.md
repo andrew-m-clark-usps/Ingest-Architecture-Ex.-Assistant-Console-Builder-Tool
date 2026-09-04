@@ -2,24 +2,25 @@
 
 Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 
-![status](https://img.shields.io/badge/status-demo%2Freference-yellow)
+![status](https://img.shields.io/badge/status-active%20implementation-blue)
 ![node](https://img.shields.io/badge/node-%3E%3D20-green)
 
 > **Integration branch.** `main` carries all three products together (the
 > Ingest tool's `src/`/`cli.mjs`/`mcp.mjs`, the Console's `console-app/`, and
 > the Exec-Assistant's `assistant.py`/`dashboard/`/`tools/`/`console/`). Each
 > product also lives on its own trimmed branch — see the table below and
-> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). None of the scaffolds are
-> the complete implementation described by their brief's "done means"
-> section — most functions throw `not implemented` and point back at the
-> section that specifies the real behavior.
+> [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). This branch now carries the
+> implemented cross-product build-out: the ingest pipeline has real PDF/PPTX/
+> XLSX/OpenAPI/codebase/session readers and generation paths, the React and
+> static UI surfaces are built and testable, and the remaining major ingest
+> gap is the true OCR/image reader.
 
 ## Documentation
 
 See [`docs/`](docs/) for the full documentation set:
 
 | Doc | Purpose |
-|---|---|
+| --- | --- |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the three products relate, pipeline/flow diagrams, shared invariants. |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Feature timeline for closing the gap between each scaffold and its brief's "done means" criteria. |
 | [`docs/Spec-Ingest-Tool.md`](docs/Spec-Ingest-Tool.md) | Full brief for the Spec-Ingest Tool (`Ingest` branch). |
@@ -72,7 +73,7 @@ provider SDK/API key in anything shipped. The parity harness
 ## What's in this repo
 
 | Product | Branch | What it describes |
-|---|---|---|
+| --- | --- | --- |
 | Spec-Ingest Tool | `Ingest` | The tool that builds the other two. Give it decks, PDFs, spreadsheets, API specs, backlogs, screenshots, an old codebase, or a running system, and it produces a working application with tests, CI, and Terraform. |
 | Addressing Console | `Console` | The worked example the tool produces: Business Customer Gateway access rules, an EPS ledger, usage metered into a projected invoice, a Publication 28 address validator, PAF/licensing, reports, and a reference library. Browser-only, no backend, no credentials. |
 | Assistant + Dashboard + Parity Harness | `Exec-Assistant` | The commitments assistant (one hotkey in, a brief out), the Console operational dashboard, and the parity harness that proves a rebuild behaves like what it replaced. |
@@ -81,13 +82,30 @@ provider SDK/API key in anything shipped. The parity harness
 
 ![Spec-Ingest Tool — what it does](docs/images/ingest-tool.png)
 
+The ingest surface is primarily a library + CLI/MCP toolchain rather than a
+single visual app. Current implemented readers include PDF, PPTX, XLSX,
+OpenAPI JSON, source-code structure, and recorded-session/running-system
+capture inventory, with marking propagation and repository generation.
+
 ### Addressing Console
 
-![Addressing Console — what it does](docs/images/addressing-console.png)
+![Addressing Console — payment ledger view](docs/images/addressing-console-current.png)
+
+Current screenshot: the rebuilt payment-ledger view with the retro deck shell,
+transport chrome, balance-over-time chart, per-account summary, and loaded
+sample transactions.
 
 ### Assistant + Dashboard + Parity Harness
 
-![Assistant + Dashboard + Parity Harness — what it does](docs/images/exec-assistant.png)
+![Standalone console workstation](docs/images/helixamp-console-current.png)
+
+Current screenshot: the standalone React workstation shell used by the
+Exec-Assistant branch's console surface.
+
+![Exec-Assistant static dashboard overview](docs/images/exec-dashboard-current.png)
+
+Current screenshot: the generated static dashboard overview page with the same
+panelized retro shell language, still dark-only and no-script.
 
 Each brief file starts with a condensed `## Instructions` section (the key
 rules distilled into bullets) followed by `## Additional Guidelines`, which
@@ -133,6 +151,7 @@ anything that reads it, including an AI agent building from the resulting
 brief.
 
 **No secrets, anywhere, ever.**
+
 - No credentials, tokens, connection strings, or private keys in this
   repository, in generated output, or in sample/test data.
 - The spec-ingest tool must scan assembled output for credential shapes
@@ -150,6 +169,7 @@ Playwright API only) may *propose* a candidate; it may never decide a
 contradiction, invent a figure, or reach generated code unconfirmed.
 
 **Confinement and supply chain.**
+
 - The spec-ingest tool ships with zero runtime dependencies — no PDF engine,
   ZIP library, or MCP SDK it did not write and cannot audit, given that it
   parses hostile file formats for a living.
@@ -184,6 +204,7 @@ Each brief documents real defects the original build hit — captured here so
 nobody re-discovers them the hard way. Grouped by branch.
 
 **Spec-Ingest Tool (`Ingest`)**
+
 - PDF reading is the hardest reader: object streams (`/ObjStm`) are
   mandatory in PDF 1.5+ or the file reads as zero pages; `/ToUnicode` CMap
   parsing is not optional for subsetted fonts, or text decodes as garbage
@@ -203,6 +224,7 @@ nobody re-discovers them the hard way. Grouped by branch.
   single-character tokens means a subsetted font with no usable CMap.
 
 **Console (`Console`)**
+
 - Two real aggregation bugs shipped in the first build, and unit tests alone
   did not catch either — only looking at the rendered chart did:
   1. "Balance over time" must be the *total position* (each account's last
@@ -223,6 +245,7 @@ nobody re-discovers them the hard way. Grouped by branch.
   full set each run — metering only newly arrived events double-charges.
 
 **Exec Assistant + Dashboard + Parity Harness (`Exec-Assistant`)**
+
 - `summarize` writes its summary back into the session file; `read_session`
   must skip the `<!--summary-->` region or every decision appears twice in
   meeting prep.
