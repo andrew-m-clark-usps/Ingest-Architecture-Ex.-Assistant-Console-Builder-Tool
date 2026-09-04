@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const useManualServer = process.env.PLAYWRIGHT_MANUAL_SERVER === '1'
+
 // See ../Console.md section 5 (quality gates): npm run smoke covers
 // grids/exports/access model/metering/theme with zero console errors.
 // Runs against the production build (vite preview), not the dev server,
@@ -20,11 +22,13 @@ export default defineConfig({
     // both here and in CI.
     channel: 'chrome',
   },
-  webServer: {
-    command: 'npm run preview -- --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: useManualServer
+    ? undefined
+    : {
+        command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
+        url: 'http://127.0.0.1:4173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 60_000,
+      },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 })
