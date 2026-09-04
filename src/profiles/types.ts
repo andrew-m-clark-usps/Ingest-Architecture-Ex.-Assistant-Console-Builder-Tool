@@ -1,5 +1,5 @@
-// DEMO/REFERENCE SCAFFOLD — see Spec-Ingest-Tool.md section 8.
-// Types only; no runtime logic.
+// Shared profile and candidate types used by extraction, reconciliation,
+// and generation flows. See Spec-Ingest-Tool.md section 8.
 
 export type CandidateKind =
   | 'rule'

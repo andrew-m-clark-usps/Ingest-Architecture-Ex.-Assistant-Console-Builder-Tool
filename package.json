@@ -2,13 +2,13 @@
   "name": "spec-ingest-tool",
   "version": "0.1.0-demo",
   "private": true,
-  "description": "DEMO/REFERENCE SCAFFOLD for the tool described in Spec-Ingest-Tool.md. Not the full 'done means' implementation.",
+  "description": "Spec ingest tool for extracting candidates, building a merged corpus, and generating implementation artifacts.",
   "type": "module",
   "bin": {
     "spec-ingest": "./cli.mjs"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "lint": "eslint .",
     "mcp": "node mcp.mjs"

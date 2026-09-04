@@ -1,11 +1,11 @@
 import type { Profile } from './types.js'
 
 // The generic default profile named in Spec-Ingest-Tool.md section 8 —
-// no domain-specific vocabulary. DEMO/REFERENCE SCAFFOLD.
+// intentionally neutral and reusable across domains.
 export const genericProfile: Profile = {
   id: 'generic',
   name: 'Generic application brief',
-  description: 'Default profile with no domain-specific vocabulary (demo scaffold).',
+  description: 'Default profile with no domain-specific vocabulary.',
   sections: [
     { section: '1', title: 'Screens', kinds: ['field', 'heading'], from: ['document', 'recording'], fill: 'A screenshot, a recorded session, or a UI spec.' },
     { section: '2', title: 'States', kinds: ['state'], from: ['document', 'recording'], fill: 'A backlog with status words, or a recorded session.' },

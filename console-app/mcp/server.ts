@@ -37,14 +37,12 @@ function callTool(name: string, args: Record<string, unknown>): ToolResult {
   switch (name) {
     case 'standardize_address': {
       const input = args as unknown as AddressInput
-      if (!input?.deliveryLine) {
-        throw new Error('standardize_address requires "deliveryLine", "city", "state", "zip5"')
-      }
+      if (!input?.deliveryLine) throw new TypeError('standardize_address requires "deliveryLine", "city", "state", "zip5"')
       return toolResult(JSON.stringify(standardizeAddress(input)))
     }
     case 'score_ledger': {
       const transactions = args.transactions as LedgerTransaction[]
-      if (!Array.isArray(transactions)) throw new Error('score_ledger requires "transactions" (array)')
+      if (!Array.isArray(transactions)) throw new TypeError('score_ledger requires "transactions" (array)')
       return toolResult(JSON.stringify(aggregateLedger(transactions)))
     }
     case 'meter_usage': {
@@ -52,7 +50,7 @@ function callTool(name: string, args: Record<string, unknown>): ToolResult {
       const agreements = args.agreements as IpAgreement[]
       const month = args.month as string | undefined
       if (!Array.isArray(events) || !Array.isArray(agreements)) {
-        throw new Error('meter_usage requires "events" and "agreements" (arrays)')
+        throw new TypeError('meter_usage requires "events" and "agreements" (arrays)')
       }
       const metered = meterUsageEvents(events, agreements)
       const invoices = month ? computeInvoice(metered, agreements, month) : undefined
@@ -61,7 +59,7 @@ function callTool(name: string, args: Record<string, unknown>): ToolResult {
     case 'audit_change_of_address': {
       const records = args.records as ChangeOfAddressRecord[]
       const returnCodes = (args.returnCodes as ReturnCodeDef[] | undefined) ?? RETURN_CODES
-      if (!Array.isArray(records)) throw new Error('audit_change_of_address requires "records" (array)')
+      if (!Array.isArray(records)) throw new TypeError('audit_change_of_address requires "records" (array)')
       const findings = records.map((r) => ({ id: r.id, findings: auditChangeOfAddressRecord(r, returnCodes) }))
       return toolResult(JSON.stringify(findings))
     }

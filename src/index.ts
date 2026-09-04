@@ -1,6 +1,5 @@
-// DEMO/REFERENCE SCAFFOLD for the Spec-Ingest Tool.
-// See ../Spec-Ingest-Tool.md for the full brief this scaffolds.
-// This is a minimal, runnable skeleton — not the "done means" implementation.
+// Public entry point for the Spec-Ingest Tool.
+// See ../Spec-Ingest-Tool.md for the source brief and intended outputs.
 
 export * from './profiles/index.js'
 export * from './specExtract.js'

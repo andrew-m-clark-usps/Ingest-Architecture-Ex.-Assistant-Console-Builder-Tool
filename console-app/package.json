@@ -2,7 +2,7 @@
   "name": "addressing-console",
   "version": "0.1.0-demo",
   "private": true,
-  "description": "DEMO/REFERENCE SCAFFOLD for the Addressing Console described in ../Console.md. Not the full 'done means' implementation.",
+  "description": "Browser-only Addressing Console with domain tools, reporting views, and smoke-test coverage.",
   "type": "module",
   "scripts": {
     "dev": "vite",
