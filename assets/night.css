@@ -1,11 +1,16 @@
-/* DEMO/REFERENCE SCAFFOLD -- the only theme, per invariant 7 (dark only,
-   no light variant, no system switch). See Exec-Assistant.md section 8. */
+/* The only theme, per invariant 7 (dark only, no light variant, no
+   system switch). See Exec-Assistant.md section 8. --rule/--rule-strong
+   are dividers checked by tools/contrast.py: --rule (the hairline) is
+   deliberately NOT contrast-checked -- forcing it to 3:1 against the
+   background produces banded, unreadable tables in dark mode. */
 :root {
   color-scheme: dark;
   --bg: #0b0d10;
   --fg: #e6e6e6;
   --muted: #9aa0a6;
   --accent: #6ea8fe;
+  --rule: #24272b;
+  --rule-strong: #7b8794;
 }
 html, body {
   background: var(--bg);

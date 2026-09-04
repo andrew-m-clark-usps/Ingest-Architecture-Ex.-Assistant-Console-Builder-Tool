@@ -5,7 +5,10 @@ dist/
 *.log
 site/
 inbox/
+people/
 notes/
 log/
 tasks.md
 brief.md
+weekly.md
+store-export.zip
