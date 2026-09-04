@@ -1,9 +1,10 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import { defineConfig } from 'eslint/config'
 
-// DEMO/REFERENCE SCAFFOLD -- ESLint 9 flat config for the Appendix A2 React console.
-export default tseslint.config(
+// ESLint 9 flat config for the Appendix A2 React console.
+export default defineConfig(
   { ignores: ['dist'] },
   {
     files: ['**/*.{ts,tsx}'],

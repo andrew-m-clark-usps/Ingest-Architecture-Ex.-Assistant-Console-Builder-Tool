@@ -5,7 +5,15 @@ dist/
 *.log
 site/
 inbox/
+people/
 notes/
 log/
 tasks.md
 brief.md
+weekly.md
+store-export.zip
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+dist-mcp/

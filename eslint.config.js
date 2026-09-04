@@ -1,9 +1,10 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import { defineConfig } from 'eslint/config'
 
-// DEMO/REFERENCE SCAFFOLD -- ESLint 9 flat config for the Spec-Ingest Tool.
-export default tseslint.config(
+// ESLint 9 flat config for the Spec-Ingest Tool.
+export default defineConfig(
   // console-app/, console/, and tools/ are separate npm projects with their
   // own eslint.config.js and lint script -- don't lint them from here.
   { ignores: ['dist', 'console-app', 'console', 'tools'] },
