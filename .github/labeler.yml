@@ -1,24 +1,32 @@
 documentation:
   - any:
     - changed-files:
-      - any-glob-to-any-file: ['*.md', 'docs/**']
+      - any-glob-to-any-file:
+        - '*.md'
+        - 'docs/**'
 
 dependencies:
   - any:
     - changed-files:
-      - any-glob-to-any-file: ['package*.json', 'yarn.lock', '**/package*.json']
+      - any-glob-to-any-file:
+        - 'package*.json'
+        - 'yarn.lock'
+        - '**/package*.json'
 
 tools:
   - any:
     - changed-files:
-      - any-glob-to-any-file: ['tools/**']
+      - any-glob-to-any-file:
+        - 'tools/**'
 
 console:
   - any:
     - changed-files:
-      - any-glob-to-any-file: ['console/**']
+      - any-glob-to-any-file:
+        - 'console/**'
 
 workflows:
   - any:
     - changed-files:
-      - any-glob-to-any-file: ['.github/workflows/**']
+      - any-glob-to-any-file:
+        - '.github/workflows/**'
