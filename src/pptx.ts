@@ -22,9 +22,12 @@ const ENTITIES: Record<string, string> = {
 }
 
 function decodeXmlEntities(text: string): string {
-  return text.replace(/&(#x?[0-9a-fA-F]+|[a-z]+);/gi, (match, entity: string) => {
-    if (entity[0] === '#') {
-      const code = entity[1] === 'x' || entity[1] === 'X' ? parseInt(entity.slice(2), 16) : parseInt(entity.slice(1), 10)
+  // The /i flag already makes matching case-insensitive, so a single
+  // `a-f` range covers both cases -- `a-fA-F` would be a duplicate range.
+  return text.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity: string) => {
+    if (entity.startsWith('#')) {
+      const isHex = entity[1] === 'x' || entity[1] === 'X'
+      const code = isHex ? Number.parseInt(entity.slice(2), 16) : Number.parseInt(entity.slice(1), 10)
       return Number.isFinite(code) ? String.fromCodePoint(code) : match
     }
     return ENTITIES[entity.toLowerCase()] ?? match
@@ -48,8 +51,8 @@ export async function readPptx(bytes: Uint8Array): Promise<SlideLines[]> {
 
   const slideEntries = entries
     .map((entry) => {
-      const match = entry.name.match(/^ppt\/slides\/slide(\d+)\.xml$/)
-      return match ? { slide: parseInt(match[1], 10), entry } : undefined
+      const match = /^ppt\/slides\/slide(\d+)\.xml$/.exec(entry.name)
+      return match ? { slide: Number.parseInt(match[1], 10), entry } : undefined
     })
     .filter((x): x is { slide: number; entry: (typeof entries)[number] } => x !== undefined)
     .sort((a, b) => a.slide - b.slide)
