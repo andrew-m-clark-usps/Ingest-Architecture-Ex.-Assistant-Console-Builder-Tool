@@ -19,6 +19,7 @@ import {
   mergeMarkings,
   readXlsxCandidates,
   readImageCandidates,
+  configureOcrFromEnvironment,
   genericProfile,
   generateApplication,
   readOpenApiCandidates,
@@ -110,7 +111,7 @@ async function classifyBytes(path, bytes) {
   if (ext === '.xls') {
     throw new Error(`refused: ${path} -- legacy .xls binary format is not supported, only .xlsx`)
   }
-  const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path)
+  const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path, { sourcePath: path })
   if (imageCandidates) return { candidates: imageCandidates, classification: detectMarking(imageCandidates.map((candidate) => candidate.text)) }
   const openApiCandidates = readOpenApiCandidates(new Uint8Array(bytes), path)
   if (openApiCandidates) return { candidates: openApiCandidates, classification: detectMarking(openApiCandidates.map((candidate) => candidate.text)) }
@@ -291,6 +292,7 @@ function reportMissingFiles(rawFiles) {
 }
 
 async function main() {
+  configureOcrFromEnvironment(process.env)
   const { files: rawFiles, values, bools } = parseArgs(process.argv.slice(2))
 
   if (rawFiles.length === 0) {

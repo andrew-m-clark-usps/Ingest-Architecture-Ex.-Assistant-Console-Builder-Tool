@@ -22,6 +22,7 @@ import {
   readPptx,
   readXlsxCandidates,
   readImageCandidates,
+  configureOcrFromEnvironment,
   readOpenApiCandidates,
   buildRecordedSessionInventory,
   readRecordedSession,
@@ -29,6 +30,7 @@ import {
 } from './dist/index.js'
 
 const ROOT = await realpath(process.cwd())
+configureOcrFromEnvironment(process.env)
 
 const TOOLS = [
   { name: 'read_spec_document', description: 'Read one document (path relative to the confined root) into candidates.' },
@@ -71,7 +73,7 @@ async function callTool(name, args) {
     if (ext === '.xlsx') {
       return { candidates: await readXlsxCandidates(new Uint8Array(bytes), path) }
     }
-    const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path)
+    const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path, { sourcePath: real })
     if (imageCandidates) return { candidates: imageCandidates }
     const openApiCandidates = readOpenApiCandidates(new Uint8Array(bytes), path)
     if (openApiCandidates) return { candidates: openApiCandidates }
