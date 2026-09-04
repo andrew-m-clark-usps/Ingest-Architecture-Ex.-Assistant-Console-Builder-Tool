@@ -1,4 +1,56 @@
-/* Loads last on purpose -- see Exec-Assistant.md section 5 (the CSS
-   load-order trap): mobile overrides for widgets belong here, not in
-   topnav.css, because widgets.css loading last is what lets it win. */
-.widget { border: 1px solid #333; padding: 1rem; border-radius: 6px; }
+.widget-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 12px;
+}
+
+.widget {
+   border: 1px solid rgba(121, 214, 255, 0.16);
+   padding: 1rem;
+   border-radius: 12px;
+   background: linear-gradient(180deg, rgba(189,221,255,0.08) 0%, rgba(18,24,35,0.98) 24%, rgba(12,16,24,0.98) 100%);
+   box-shadow: var(--shadow);
+}
+
+.widget-label {
+   margin: 0 0 0.35rem;
+   font-size: 0.7rem;
+   letter-spacing: 0.2em;
+   text-transform: uppercase;
+   color: var(--muted);
+}
+
+.widget-value {
+   margin: 0;
+   font-size: 1.55rem;
+   font-weight: 700;
+   color: var(--fg);
+}
+
+.meter-bank {
+   display: flex;
+   align-items: end;
+   gap: 8px;
+   min-height: 136px;
+}
+
+.meter-bank span {
+   flex: 1;
+   min-width: 0;
+   border-radius: 999px;
+   background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 55%, var(--accent-3) 100%);
+   box-shadow: 0 0 14px rgba(121,214,255,0.18);
+}
+
+.meter-bank span:nth-child(1) { height: 82%; }
+.meter-bank span:nth-child(2) { height: 60%; }
+.meter-bank span:nth-child(3) { height: 90%; }
+.meter-bank span:nth-child(4) { height: 56%; }
+.meter-bank span:nth-child(5) { height: 74%; }
+.meter-bank span:nth-child(6) { height: 68%; }
+
+@media (max-width: 700px) {
+   .widget-grid {
+      grid-template-columns: 1fr;
+   }
+}

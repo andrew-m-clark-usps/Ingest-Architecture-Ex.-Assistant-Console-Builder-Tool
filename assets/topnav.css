@@ -1,3 +1,47 @@
-/* DEMO/REFERENCE SCAFFOLD -- see Exec-Assistant.md section 5: widgets.css
-   must load after this file, or an equal-specificity rule here loses. */
-.topnav { display: flex; gap: 1rem; }
+.topnav {
+   display: grid;
+   gap: 12px;
+}
+
+.topnav .panel-body {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+}
+
+.topnav-title {
+   margin: 0;
+   font-size: 0.68rem;
+   letter-spacing: 0.24em;
+   text-transform: uppercase;
+   color: var(--muted);
+}
+
+.topnav-links {
+   display: grid;
+   gap: 8px;
+}
+
+.topnav-links a,
+.topnav-links span[aria-current='page'] {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   gap: 12px;
+   padding: 10px 12px;
+   border-radius: 10px;
+   border: 1px solid rgba(121, 214, 255, 0.14);
+   background: rgba(255,255,255,0.03);
+}
+
+.topnav-links span[aria-current='page'] {
+   background: rgba(121,214,255,0.12);
+   color: var(--fg);
+}
+
+.topnav-code {
+   font-size: 0.66rem;
+   letter-spacing: 0.22em;
+   text-transform: uppercase;
+   color: var(--accent-2);
+}

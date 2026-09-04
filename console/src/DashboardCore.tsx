@@ -1,70 +1,304 @@
 import React, { useState } from 'react'
-import { LayoutDashboard, ChevronRight, Activity, Layers, Sparkles } from 'lucide-react'
+import {
+  Activity,
+  BarChart3,
+  ChevronRight,
+  Disc3,
+  LayoutDashboard,
+  Layers,
+  ListMusic,
+  Radio,
+  SlidersHorizontal,
+  Sparkles,
+  Volume2,
+} from 'lucide-react'
 
-// From Exec-Assistant.md Appendix A2 -- a separate product, its own
-// directory, stack, and build. Does not import assets/night.css, and
-// nothing under assets/, ui-real/, or dashboard/ imports this.
+const shell = {
+  bg: '#0d1017',
+  panel: '#151a24',
+  panelStrong: '#1b2230',
+  panelSoft: '#111620',
+  text: '#eff6ff',
+  muted: '#9baccc',
+  cyan: '#78d4ff',
+  mint: '#79efb5',
+  blue: '#526dff',
+  border: 'rgba(129, 170, 255, 0.18)',
+  glow: '0 12px 28px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.08)',
+}
+
+const queue = [
+  'Analytics Console',
+  'Routing Queue',
+  'Charge Peaks',
+  'Evidence Browser',
+  'Patch Stream',
+]
+
+const spectrum = [82, 58, 91, 66, 48, 88, 60, 74]
+const controlIcons = [
+  { name: 'volume', Icon: Volume2, color: shell.cyan },
+  { name: 'radio', Icon: Radio, color: shell.mint },
+  { name: 'disc', Icon: Disc3, color: shell.cyan },
+  { name: 'sliders', Icon: SlidersHorizontal, color: shell.mint },
+]
 
 export const DashboardCore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'logs'>('analytics')
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-slate-900 font-sans antialiased flex">
-      <aside className="w-64 bg-white border-r border-slate-200/60 p-5 flex-col justify-between hidden md:flex">
-        <div className="space-y-6">
-          <div className="flex items-center gap-2.5 px-2">
-            <div className="h-6 w-6 rounded bg-slate-950 flex items-center justify-center">
-              <Layers className="h-3.5 w-3.5 text-white" />
+    <div
+      style={{
+        minHeight: '100vh',
+        background:
+          'radial-gradient(circle at top left, rgba(120,212,255,0.14), transparent 18%), linear-gradient(180deg, #192131 0%, #0d1017 62%)',
+        color: shell.text,
+        fontFamily: 'Trebuchet MS, Verdana, sans-serif',
+        padding: '12px',
+      }}
+    >
+      <div
+        style={{
+          minHeight: 'calc(100vh - 24px)',
+          display: 'grid',
+          gridTemplateColumns: '280px minmax(0, 1fr) 260px',
+          gap: '12px',
+          padding: '12px',
+          borderRadius: '18px',
+          background: 'linear-gradient(180deg, rgba(25,33,49,0.94) 0%, rgba(10,13,20,0.98) 100%)',
+          border: `1px solid ${shell.border}`,
+          boxShadow: shell.glow,
+        }}
+      >
+        <aside
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            minWidth: 0,
+          }}
+        >
+          <section
+            style={{
+              borderRadius: '14px',
+              padding: '14px',
+              background: 'linear-gradient(180deg, rgba(181,216,255,0.22) 0%, rgba(27,34,48,0.95) 18%, rgba(18,22,31,0.98) 100%)',
+              border: `1px solid ${shell.border}`,
+              boxShadow: shell.glow,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '8px',
+                    background: 'linear-gradient(180deg, #7fd6ff 0%, #516cff 100%)',
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
+                  <Layers size={16} color="#07111f" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.24em', color: shell.muted }}>
+                    Deck A
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    Helixamp Console
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['-', '+', 'x'].map((token) => (
+                  <div
+                    key={token}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '4px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: '10px',
+                      color: '#09101a',
+                      background: 'linear-gradient(180deg, #c7ecff 0%, #79d6ff 100%)',
+                    }}
+                  >
+                    {token}
+                  </div>
+                ))}
+              </div>
             </div>
-            <span className="font-semibold text-sm tracking-tight">Helix Core v4.1</span>
-          </div>
-          <nav className="space-y-1">
+            <nav style={{ display: 'grid', gap: '8px' }}>
             <button
               type="button"
               onClick={() => setActiveTab('analytics')}
               aria-current={activeTab === 'analytics' ? 'page' : undefined}
               data-testid="nav-analytics"
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 ${
-                activeTab === 'analytics'
-                  ? 'bg-slate-100 text-slate-950 font-semibold'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                border: `1px solid ${shell.border}`,
+                background: activeTab === 'analytics' ? 'rgba(120,212,255,0.14)' : 'rgba(255,255,255,0.03)',
+                color: shell.text,
+                cursor: 'pointer',
+              }}
             >
-              <span className="flex items-center gap-2">
-                <LayoutDashboard className="h-3.5 w-3.5" /> Analytics Console
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700 }}>
+                <LayoutDashboard size={14} /> Analytics Console
               </span>
-              <ChevronRight className="h-3 w-3 opacity-60" />
+              <ChevronRight size={12} color={shell.cyan} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('logs')}
+              aria-current={activeTab === 'logs' ? 'page' : undefined}
+              data-testid="nav-logs"
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                border: `1px solid ${shell.border}`,
+                background: activeTab === 'logs' ? 'rgba(121,239,181,0.14)' : 'rgba(255,255,255,0.03)',
+                color: shell.text,
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700 }}>
+                <ListMusic size={14} /> Event Browser
+              </span>
+              <ChevronRight size={12} color={shell.mint} />
             </button>
           </nav>
-        </div>
-        <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex items-center gap-3">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-sm" />
-          <div>
-            <p className="text-xs font-medium text-slate-800">Operational Node</p>
-            <p className="text-[10px] text-slate-400 font-mono">node_0x992a.live</p>
-          </div>
-        </div>
-      </aside>
+          </section>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#FAFAFA]">
-        <header className="h-14 bg-white border-b border-slate-200/60 px-8 flex items-center justify-between">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium text-slate-500">
+          <section
+            style={{
+              borderRadius: '14px',
+              padding: '14px',
+              background: shell.panelSoft,
+              border: `1px solid ${shell.border}`,
+              boxShadow: shell.glow,
+            }}
+          >
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted, marginBottom: '10px' }}>
+              Playlist Browser
+            </div>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {queue.map((item, index) => (
+                <div
+                  key={item}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: index === 0 ? 'rgba(120,212,255,0.12)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${shell.border}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <span style={{ fontSize: '12px' }}>{item}</span>
+                  <span style={{ fontSize: '10px', letterSpacing: '0.18em', color: shell.muted }}>
+                    0{index + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
+
+        <main style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <header
+            style={{
+              minHeight: '62px',
+              borderRadius: '14px',
+              padding: '14px 16px',
+              background: 'linear-gradient(180deg, rgba(183,215,255,0.24) 0%, rgba(24,31,43,0.96) 22%, rgba(14,18,27,0.98) 100%)',
+              border: `1px solid ${shell.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              boxShadow: shell.glow,
+            }}
+          >
+            <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: shell.muted, minWidth: 0 }}>
             <span>Environments</span>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-slate-900 font-semibold">Production Cloud Cluster</span>
+            <ChevronRight size={12} />
+            <span style={{ color: shell.text, fontWeight: 700 }}>Production Cloud Cluster</span>
           </nav>
           <button
             type="button"
             data-testid="global-sync-btn"
-            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-900 active:scale-[0.98] text-white text-xs font-medium rounded-lg shadow-sm transition-all duration-200 ease-out flex items-center gap-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950"
+            style={{
+              padding: '10px 14px',
+              background: 'linear-gradient(180deg, #80dcff 0%, #4f6cff 100%)',
+              color: '#07111f',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.12em',
+              borderRadius: '10px',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+            }}
           >
-            <Activity className="h-3.5 w-3.5 text-emerald-400 motion-safe:animate-pulse" />
+            <Activity size={14} color="#072126" />
             Force Global Synchronize
           </button>
-        </header>
+          </header>
 
-        <div className="p-8 space-y-6 max-w-7xl w-full mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <section
+            style={{
+              borderRadius: '14px',
+              padding: '16px',
+              background: shell.panel,
+              border: `1px solid ${shell.border}`,
+              boxShadow: shell.glow,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+              <div>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted }}>
+                  Main Browser
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  {activeTab === 'analytics' ? 'Analytics Console' : 'Event Browser'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {controlIcons.map(({ name, Icon, color }) => (
+                  <div
+                    key={name}
+                    style={{
+                      width: '34px',
+                      height: '34px',
+                      borderRadius: '10px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      border: `1px solid ${shell.border}`,
+                      background: 'rgba(255,255,255,0.03)',
+                    }}
+                  >
+                    <Icon size={16} color={color} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '14px', marginBottom: '16px' }}>
             {[
               { id: 'compute', label: 'Compute Allocation', value: '94.2%', rate: '+2.1%', desc: 'Current active vCPU cluster utility.' },
               { id: 'network', label: 'Network Throughput', value: '4.8 GB/s', rate: 'Optimal', desc: 'Ingress routing capacity threshold.' },
@@ -73,49 +307,155 @@ export const DashboardCore: React.FC = () => {
               <div
                 key={stat.id}
                 data-testid={`metric-card-${stat.id}`}
-                className="bg-gradient-to-b from-white to-slate-50/50 border border-slate-200/60 p-5 rounded-xl shadow-sm space-y-3"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(189,221,255,0.14) 0%, rgba(21,27,39,0.96) 18%, rgba(12,16,24,0.98) 100%)',
+                  border: `1px solid ${shell.border}`,
+                  padding: '14px',
+                  borderRadius: '12px',
+                }}
               >
-                <div className="flex justify-between items-start gap-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{stat.label}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', color: shell.muted }}>{stat.label}</span>
                   <span
                     data-testid={`metric-rate-${stat.id}`}
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                      stat.rate.startsWith('+')
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
-                        : 'bg-slate-50 text-slate-600 border-slate-200'
-                    }`}
+                    style={{
+                      fontSize: '10px',
+                      padding: '4px 6px',
+                      borderRadius: '999px',
+                      border: `1px solid ${stat.rate.startsWith('+') ? 'rgba(121,239,181,0.3)' : shell.border}`,
+                      color: stat.rate.startsWith('+') ? shell.mint : shell.cyan,
+                      background: 'rgba(255,255,255,0.04)',
+                    }}
                   >
                     {stat.rate}
                   </span>
                 </div>
                 <h3
                   data-testid={`metric-value-${stat.id}`}
-                  className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums"
+                  style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '0.03em', color: shell.text, margin: '10px 0 6px' }}
                 >
                   {stat.value}
                 </h3>
-                <p className="text-xs text-slate-500 leading-normal">{stat.desc}</p>
+                <p style={{ fontSize: '12px', color: shell.muted, lineHeight: 1.5, margin: 0 }}>{stat.desc}</p>
               </div>
             ))}
-          </div>
+            </div>
 
           <section
             id="stream-feature-injection-zone"
             data-testid="injection-container-root"
-            className="bg-white border border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-3 min-h-[260px]"
+            style={{
+              minHeight: '240px',
+              borderRadius: '14px',
+              padding: '24px',
+              border: '1px dashed rgba(121,214,255,0.42)',
+              background: 'linear-gradient(180deg, rgba(13,18,28,0.96) 0%, rgba(9,12,18,0.98) 100%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              gap: '12px',
+            }}
           >
-            <div className="h-9 w-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
-              <Sparkles className="h-4 w-4" />
+            <div
+              style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'rgba(255,255,255,0.04)',
+                border: `1px solid ${shell.border}`,
+              }}
+            >
+              <Sparkles size={18} color={shell.cyan} />
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-slate-800">Dynamic Feature Ingestion Hub</h4>
-              <p className="text-xs text-slate-400 max-w-xs mt-1">
+              <h4 style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>
+                Dynamic Feature Ingestion Hub
+              </h4>
+              <p style={{ fontSize: '12px', color: shell.muted, maxWidth: '280px', margin: '8px auto 0' }}>
                 Drop markdown patches into the stream workflow to integrate features inside this container.
               </p>
             </div>
           </section>
-        </div>
-      </main>
+          </section>
+        </main>
+
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+          <section
+            style={{
+              borderRadius: '14px',
+              padding: '14px',
+              background: shell.panelStrong,
+              border: `1px solid ${shell.border}`,
+              boxShadow: shell.glow,
+            }}
+          >
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted, marginBottom: '12px' }}>
+              Spectrum
+            </div>
+            <div style={{ display: 'flex', alignItems: 'end', gap: '6px', minHeight: '150px' }}>
+              {spectrum.map((value, index) => (
+                <div key={index} style={{ flex: 1, display: 'flex', alignItems: 'end' }}>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: `${value}%`,
+                      minHeight: '16px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(180deg, #79efb5 0%, #78d4ff 58%, #526dff 100%)',
+                      boxShadow: '0 0 14px rgba(120,212,255,0.18)',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section
+            style={{
+              borderRadius: '14px',
+              padding: '14px',
+              background: shell.panelSoft,
+              border: `1px solid ${shell.border}`,
+              boxShadow: shell.glow,
+            }}
+          >
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted, marginBottom: '12px' }}>
+              Browser Queue
+            </div>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {[
+                { label: 'Index Delta', icon: <BarChart3 size={14} color={shell.cyan} /> },
+                { label: 'Event Relay', icon: <Activity size={14} color={shell.mint} /> },
+                { label: 'Routing Bus', icon: <Radio size={14} color={shell.cyan} /> },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${shell.border}`,
+                    background: 'rgba(255,255,255,0.03)',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+                    {item.icon}
+                    {item.label}
+                  </span>
+                  <span style={{ fontSize: '10px', letterSpacing: '0.16em', color: shell.muted }}>LIVE</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </div>
     </div>
   )
 }

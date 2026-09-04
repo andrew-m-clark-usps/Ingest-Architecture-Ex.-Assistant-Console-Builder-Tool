@@ -5,19 +5,55 @@
    background produces banded, unreadable tables in dark mode. */
 :root {
   color-scheme: dark;
-  --bg: #0b0d10;
-  --fg: #e6e6e6;
-  --muted: #9aa0a6;
-  --accent: #6ea8fe;
-  --rule: #24272b;
-  --rule-strong: #7b8794;
+  --bg: #090b12;
+  --bg-panel: #141926;
+  --bg-panel-strong: #1a2130;
+  --bg-panel-soft: #0f131d;
+  --fg: #eef4ff;
+  --muted: #97a6c4;
+  --accent: #79d6ff;
+  --accent-2: #7df0b8;
+  --accent-3: #4c63ff;
+  --rule: #232938;
+  --rule-strong: #8ca0c2;
+  --shadow: 0 14px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 html, body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(121,214,255,0.14), transparent 18%),
+    linear-gradient(180deg, #1a2232 0%, var(--bg) 56%);
   color: var(--fg);
-  font-family: system-ui, sans-serif;
+  font-family: "Trebuchet MS", Verdana, sans-serif;
   margin: 0;
-  padding: 2rem;
+  padding: 0;
+  overflow-x: clip;
 }
-a { color: var(--accent); }
-p { color: var(--muted); }
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+p, li, td, th, span {
+  color: inherit;
+}
+body {
+  min-width: 0;
+}
+h1, h2, h3 {
+  overflow-wrap: anywhere;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead th {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+th, td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
