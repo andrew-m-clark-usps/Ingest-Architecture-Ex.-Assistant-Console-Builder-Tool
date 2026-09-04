@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Activity,
   BarChart3,
@@ -43,8 +43,39 @@ const controlIcons = [
   { name: 'sliders', Icon: SlidersHorizontal, color: shell.mint },
 ]
 
+const analyticsStats = [
+  { id: 'compute', label: 'Compute Allocation', value: '94.2%', rate: '+2.1%', desc: 'Current active vCPU cluster utility.' },
+  { id: 'network', label: 'Network Throughput', value: '4.8 GB/s', rate: 'Optimal', desc: 'Ingress routing capacity threshold.' },
+  { id: 'database', label: 'Database Mutation Frequency', value: '14,204/s', rate: '+12.4%', desc: 'Strict read/write operation tracking.' },
+]
+
+const eventEntries = [
+  { id: 'evt-201', time: '11:42:18', severity: 'sync', title: 'Replication queue normalized', detail: 'North cluster reconciled 42 pending route updates.' },
+  { id: 'evt-202', time: '11:39:04', severity: 'warn', title: 'Ledger drift detected', detail: 'One pending transaction remains outside the settled balance set.' },
+  { id: 'evt-203', time: '11:33:51', severity: 'info', title: 'Gateway probe passed', detail: 'All CRID add-location checks returned healthy response shapes.' },
+]
+
+const severityColors: Record<string, string> = {
+  sync: shell.mint,
+  warn: '#ffd36e',
+  info: shell.cyan,
+}
+
 export const DashboardCore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'logs'>('analytics')
+  const [viewportWidth, setViewportWidth] = useState<number>(() => window.innerWidth)
+
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const isMobile = viewportWidth < 900
+  const isCompact = viewportWidth < 1280
+  const shellColumns = isMobile ? '1fr' : isCompact ? '280px minmax(0, 1fr)' : '280px minmax(0, 1fr) 260px'
+  const metricColumns = isMobile ? '1fr' : viewportWidth < 1180 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'
+  const showAnalytics = activeTab === 'analytics'
 
   return (
     <div
@@ -61,7 +92,7 @@ export const DashboardCore: React.FC = () => {
         style={{
           minHeight: 'calc(100vh - 24px)',
           display: 'grid',
-          gridTemplateColumns: '280px minmax(0, 1fr) 260px',
+          gridTemplateColumns: shellColumns,
           gap: '12px',
           padding: '12px',
           borderRadius: '18px',
@@ -76,6 +107,7 @@ export const DashboardCore: React.FC = () => {
             flexDirection: 'column',
             gap: '12px',
             minWidth: 0,
+            order: 1,
           }}
         >
           <section
@@ -217,7 +249,7 @@ export const DashboardCore: React.FC = () => {
           </section>
         </aside>
 
-        <main style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <main style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '12px', order: 2 }}>
           <header
             style={{
               minHeight: '62px',
@@ -228,11 +260,12 @@ export const DashboardCore: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
               gap: '12px',
               boxShadow: shell.glow,
             }}
           >
-            <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: shell.muted, minWidth: 0 }}>
+            <nav aria-label="Breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: shell.muted, minWidth: 0, flexWrap: 'wrap' }}>
             <span>Environments</span>
             <ChevronRight size={12} />
             <span style={{ color: shell.text, fontWeight: 700 }}>Production Cloud Cluster</span>
@@ -269,13 +302,13 @@ export const DashboardCore: React.FC = () => {
               boxShadow: shell.glow,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted }}>
                   Main Browser
                 </div>
                 <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  {activeTab === 'analytics' ? 'Analytics Console' : 'Event Browser'}
+                  {showAnalytics ? 'Analytics Console' : 'Event Browser'}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -298,92 +331,133 @@ export const DashboardCore: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '14px', marginBottom: '16px' }}>
-            {[
-              { id: 'compute', label: 'Compute Allocation', value: '94.2%', rate: '+2.1%', desc: 'Current active vCPU cluster utility.' },
-              { id: 'network', label: 'Network Throughput', value: '4.8 GB/s', rate: 'Optimal', desc: 'Ingress routing capacity threshold.' },
-              { id: 'database', label: 'Database Mutation Frequency', value: '14,204/s', rate: '+12.4%', desc: 'Strict read/write operation tracking.' },
-            ].map((stat) => (
-              <div
-                key={stat.id}
-                data-testid={`metric-card-${stat.id}`}
-                style={{
-                  background: 'linear-gradient(180deg, rgba(189,221,255,0.14) 0%, rgba(21,27,39,0.96) 18%, rgba(12,16,24,0.98) 100%)',
-                  border: `1px solid ${shell.border}`,
-                  padding: '14px',
-                  borderRadius: '12px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', color: shell.muted }}>{stat.label}</span>
-                  <span
-                    data-testid={`metric-rate-${stat.id}`}
+            {showAnalytics ? (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: metricColumns, gap: '14px', marginBottom: '16px' }}>
+                  {analyticsStats.map((stat) => (
+                    <div
+                      key={stat.id}
+                      data-testid={`metric-card-${stat.id}`}
+                      style={{
+                        background: 'linear-gradient(180deg, rgba(189,221,255,0.14) 0%, rgba(21,27,39,0.96) 18%, rgba(12,16,24,0.98) 100%)',
+                        border: `1px solid ${shell.border}`,
+                        padding: '14px',
+                        borderRadius: '12px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', color: shell.muted }}>{stat.label}</span>
+                        <span
+                          data-testid={`metric-rate-${stat.id}`}
+                          style={{
+                            fontSize: '10px',
+                            padding: '4px 6px',
+                            borderRadius: '999px',
+                            border: `1px solid ${stat.rate.startsWith('+') ? 'rgba(121,239,181,0.3)' : shell.border}`,
+                            color: stat.rate.startsWith('+') ? shell.mint : shell.cyan,
+                            background: 'rgba(255,255,255,0.04)',
+                          }}
+                        >
+                          {stat.rate}
+                        </span>
+                      </div>
+                      <h3
+                        data-testid={`metric-value-${stat.id}`}
+                        style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '0.03em', color: shell.text, margin: '10px 0 6px' }}
+                      >
+                        {stat.value}
+                      </h3>
+                      <p style={{ fontSize: '12px', color: shell.muted, lineHeight: 1.5, margin: 0 }}>{stat.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <section
+                  id="stream-feature-injection-zone"
+                  data-testid="injection-container-root"
+                  style={{
+                    minHeight: '240px',
+                    borderRadius: '14px',
+                    padding: '24px',
+                    border: '1px dashed rgba(121,214,255,0.42)',
+                    background: 'linear-gradient(180deg, rgba(13,18,28,0.96) 0%, rgba(9,12,18,0.98) 100%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <div
                     style={{
-                      fontSize: '10px',
-                      padding: '4px 6px',
-                      borderRadius: '999px',
-                      border: `1px solid ${stat.rate.startsWith('+') ? 'rgba(121,239,181,0.3)' : shell.border}`,
-                      color: stat.rate.startsWith('+') ? shell.mint : shell.cyan,
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      display: 'grid',
+                      placeItems: 'center',
                       background: 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${shell.border}`,
                     }}
                   >
-                    {stat.rate}
-                  </span>
-                </div>
-                <h3
-                  data-testid={`metric-value-${stat.id}`}
-                  style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '0.03em', color: shell.text, margin: '10px 0 6px' }}
-                >
-                  {stat.value}
-                </h3>
-                <p style={{ fontSize: '12px', color: shell.muted, lineHeight: 1.5, margin: 0 }}>{stat.desc}</p>
-              </div>
-            ))}
-            </div>
-
-          <section
-            id="stream-feature-injection-zone"
-            data-testid="injection-container-root"
-            style={{
-              minHeight: '240px',
-              borderRadius: '14px',
-              padding: '24px',
-              border: '1px dashed rgba(121,214,255,0.42)',
-              background: 'linear-gradient(180deg, rgba(13,18,28,0.96) 0%, rgba(9,12,18,0.98) 100%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              gap: '12px',
-            }}
-          >
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                display: 'grid',
-                placeItems: 'center',
-                background: 'rgba(255,255,255,0.04)',
-                border: `1px solid ${shell.border}`,
-              }}
-            >
-              <Sparkles size={18} color={shell.cyan} />
-            </div>
-            <div>
-              <h4 style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>
-                Dynamic Feature Ingestion Hub
-              </h4>
-              <p style={{ fontSize: '12px', color: shell.muted, maxWidth: '280px', margin: '8px auto 0' }}>
-                Drop markdown patches into the stream workflow to integrate features inside this container.
-              </p>
-            </div>
-          </section>
+                    <Sparkles size={18} color={shell.cyan} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>
+                      Dynamic Feature Ingestion Hub
+                    </h4>
+                    <p style={{ fontSize: '12px', color: shell.muted, maxWidth: '280px', margin: '8px auto 0' }}>
+                      Drop markdown patches into the stream workflow to integrate features inside this container.
+                    </p>
+                  </div>
+                </section>
+              </>
+            ) : (
+              <section
+                data-testid="event-browser-root"
+                style={{
+                  display: 'grid',
+                  gap: '12px',
+                }}
+              >
+                {eventEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    style={{
+                      borderRadius: '12px',
+                      padding: '14px',
+                      border: `1px solid ${shell.border}`,
+                      background: 'linear-gradient(180deg, rgba(189,221,255,0.08) 0%, rgba(18,24,35,0.98) 24%, rgba(12,16,24,0.98) 100%)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: shell.muted }}>{entry.time}</div>
+                        <div style={{ fontSize: '16px', fontWeight: 700, color: shell.text }}>{entry.title}</div>
+                      </div>
+                      <div
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '999px',
+                          border: `1px solid ${severityColors[entry.severity]}`,
+                          color: severityColors[entry.severity],
+                          fontSize: '10px',
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {entry.severity}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '12px', color: shell.muted, lineHeight: 1.5, margin: 0 }}>{entry.detail}</p>
+                  </div>
+                ))}
+              </section>
+            )}
           </section>
         </main>
 
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, order: isCompact ? 3 : 3, gridColumn: isMobile ? '1 / -1' : undefined }}>
           <section
             style={{
               borderRadius: '14px',
