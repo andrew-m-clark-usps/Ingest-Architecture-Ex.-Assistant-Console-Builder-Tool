@@ -9,13 +9,14 @@
 import { createHash } from 'node:crypto'
 import { appendFile, mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import type { SourceMarking } from './markings.js'
 
 export interface AuditRecord {
   at: string
   who: string
-  read?: { path: string; contentHash: string; byteCount: number }
+  read?: { path: string; contentHash: string; byteCount: number; classification?: SourceMarking }
   against?: { profileId: string; toolVersion: string }
-  produced?: { contentHash: string; sections: string[] }
+  produced?: { contentHash: string; sections: string[]; classification?: SourceMarking }
   refusal?: { reason: string }
 }
 
