@@ -17,15 +17,25 @@ import {
   mergeCandidates,
   scoreCoverage,
   reconcile as reconcileFields,
+  readCodebaseCandidates,
   readPdf,
   readPptx,
+  readXlsxCandidates,
+  readImageCandidates,
+  configureOcr,
+  configureOcrFromEnvironment,
+  readOpenApiCandidates,
+  buildRecordedSessionInventory,
+  readRecordedSession,
   genericProfile,
 } from './dist/index.js'
 
 const ROOT = await realpath(process.cwd())
+configureOcrFromEnvironment(process.env)
 
 const TOOLS = [
   { name: 'read_spec_document', description: 'Read one document (path relative to the confined root) into candidates.' },
+  { name: 'inspect_recorded_session', description: 'Inspect a recorded-session directory and return its artifact inventory.' },
   { name: 'score_corpus', description: 'Score a corpus of candidates against a profile.' },
   { name: 'list_profiles', description: 'List available profiles.' },
   { name: 'reconcile', description: "Reconcile an old artifact's field list against a newer system's." },
@@ -50,6 +60,14 @@ async function callTool(name, args) {
   if (name === 'read_spec_document') {
     const path = args?.path
     if (!path) throw new Error('read_spec_document requires "path"')
+    configureOcr(
+      {
+        mode: args?.ocrMode,
+        tesseractCommand: args?.ocrTesseractCmd,
+        tesseractLanguage: args?.ocrTesseractLang,
+      },
+      process.env,
+    )
     const real = await resolveConfined(path)
     const bytes = await readFile(real)
     const ext = extname(real).toLowerCase()
@@ -61,7 +79,25 @@ async function callTool(name, args) {
       const slides = await readPptx(new Uint8Array(bytes))
       return { candidates: slides.flatMap((s) => classifyLines(s.lines, `${path}#slide${s.slide}`)) }
     }
-    return { candidates: classifyLines(bytes.toString('utf-8').split(/\r\n|\r|\n/), path) }
+    if (ext === '.xlsx') {
+      return { candidates: await readXlsxCandidates(new Uint8Array(bytes), path) }
+    }
+    const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path, { sourcePath: real })
+    if (imageCandidates) return { candidates: imageCandidates }
+    const openApiCandidates = readOpenApiCandidates(new Uint8Array(bytes), path)
+    if (openApiCandidates) return { candidates: openApiCandidates }
+    const text = bytes.toString('utf-8')
+    return { candidates: [...readCodebaseCandidates(text, path), ...classifyLines(text.split(/\r\n|\r|\n/), path)] }
+  }
+  if (name === 'inspect_recorded_session') {
+    const path = args?.path
+    if (!path) throw new Error('inspect_recorded_session requires "path"')
+    const real = await resolveConfined(path)
+    const inventory = await buildRecordedSessionInventory(real)
+    if (inventory.refusalReasons.length > 0) {
+      return { inventory, refused: true }
+    }
+    return { inventory, candidates: await readRecordedSession(real) }
   }
   if (name === 'score_corpus') {
     const candidates = args?.candidates

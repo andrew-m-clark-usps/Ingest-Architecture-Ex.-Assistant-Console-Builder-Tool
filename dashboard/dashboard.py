@@ -13,6 +13,14 @@ OUT_DIR = ROOT / "site"
 
 NAV_PAGES = ["overview", "records", "feeds", "charges", "activity"]
 
+NAV_CODES = {
+    "overview": "OVR",
+    "records": "REC",
+    "feeds": "FED",
+    "charges": "CHG",
+    "activity": "ACT",
+}
+
 
 def _load_sample(sample_path: Path = SAMPLE) -> dict:
     if not sample_path.exists():
@@ -25,10 +33,33 @@ def _nav_html(current: str) -> str:
     for page in NAV_PAGES:
         label = page.capitalize()
         if page == current:
-            links.append(f"<span aria-current='page'>{label}</span>")
+            links.append(
+                f"<span aria-current='page'><span>{label}</span><span class='topnav-code'>{NAV_CODES[page]}</span></span>"
+            )
         else:
-            links.append(f"<a href='{page}.html'>{label}</a>")
-    return "<nav class='topnav'>" + " | ".join(links) + "</nav>"
+            links.append(f"<a href='{page}.html'><span>{label}</span><span class='topnav-code'>{NAV_CODES[page]}</span></a>")
+    return (
+        "<nav class='topnav panel'><div class='panel-body'>"
+        "<p class='topnav-title'>Navigator deck</p>"
+        "<div class='topnav-links'>"
+        + "".join(links)
+        + "</div></div></nav>"
+    )
+
+
+def _overview_body(data: dict) -> str:
+    widgets = "".join(
+        "<div class='widget'><p class='widget-label'>"
+        + name
+        + "</p><p class='widget-value'>"
+        + str(len(data.get(name, [])))
+        + "</p></div>"
+        for name in ("records", "feeds", "charges", "activity")
+    )
+    meter = "<div class='widget'><p class='widget-label'>Signal meter</p><div class='meter-bank'>" + "".join(
+        "<span></span>" for _ in (82, 60, 90, 56, 74, 68)
+    ) + "</div></div>"
+    return "<div class='widget-grid'>" + widgets + meter + "</div>"
 
 
 def _page_html(title: str, current: str, body: str) -> str:
@@ -37,10 +68,17 @@ def _page_html(title: str, current: str, body: str) -> str:
     return (
         "<!doctype html><html><head><meta charset='utf-8'>"
         "<link rel='stylesheet' href='../../assets/night.css'>"
+        "<link rel='stylesheet' href='../../assets/app.css'>"
         "<link rel='stylesheet' href='../../assets/topnav.css'>"
         "<link rel='stylesheet' href='../../assets/widgets.css'>"
         f"<title>{title}</title></head><body>"
-        f"{_nav_html(current)}<h1>{title}</h1>{body}</body></html>"
+        "<div class='app-shell'><div class='deck'>"
+        f"{_nav_html(current)}"
+        "<main class='main-browser panel'><div class='panel-body'>"
+        "<div class='browser-header'><div>"
+        f"<p class='panel-kicker'>Main browser</p><h1 class='panel-title'>{title}</h1>"
+        "</div><div class='transport-row'><span class='transport-pill'>Play</span><span class='transport-pill'>Mix</span><span class='transport-pill'>EQ</span></div></div>"
+        f"<div class='browser-display'>{body}</div></div></main></div></div></body></html>"
     )
 
 
@@ -56,10 +94,7 @@ def build(out_dir: Path = OUT_DIR, sample_path: Path = SAMPLE) -> list[Path]:
     data = _load_sample(sample_path)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    overview_body = "".join(
-        f"<div class='widget'>{name}: {len(data.get(name, []))}</div>"
-        for name in ("records", "feeds", "charges", "activity")
-    )
+    overview_body = _overview_body(data)
     pages = {"overview": overview_body}
     for name in ("records", "feeds", "charges", "activity"):
         rows = data.get(name, [])

@@ -3,7 +3,7 @@ import { Alert, Button, Paper, Stack, Table, TableBody, TableCell, TableHead, Ta
 
 // See ../../Console.md section 4 item 8 (data sources, the ingest log).
 // A minimal dependency-free CSV parser -- no papaparse, so this stays
-// zero-runtime-dependency-risk for a demo scaffold. Every row's outcome is
+// zero-runtime-dependency-risk for this browser-only console. Every row's outcome is
 // shown, not just a success count.
 
 interface IngestedRow {
@@ -61,7 +61,7 @@ export function DataSources() {
       >
         <Typography gutterBottom>Drag a CSV file here, or:</Typography>
         <Button component="label">
-          Choose file
+          <span>Choose file</span>
           <input
             hidden
             type="file"

@@ -1,0 +1,141 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+
+let child: ChildProcessWithoutNullStreams
+let nextId = 1
+let buffer = ''
+const pending = new Map<number, (result: unknown) => void>()
+const TMP_ROOT = 'test-tmp'
+
+function send(method: string, params?: unknown): Promise<unknown> {
+  const id = nextId++
+  const request = { jsonrpc: '2.0', id, method, params }
+  return new Promise((resolve) => {
+    pending.set(id, resolve)
+    child.stdin.write(JSON.stringify(request) + '\n')
+  })
+}
+
+beforeAll(() => {
+  child = spawn('node', ['mcp.mjs'])
+  child.stdout.on('data', (chunk: Buffer) => {
+    buffer += chunk.toString()
+    let newlineIndex: number
+    while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+      const line = buffer.slice(0, newlineIndex)
+      buffer = buffer.slice(newlineIndex + 1)
+      if (!line.trim()) continue
+      const msg = JSON.parse(line)
+      pending.get(msg.id)?.(msg.result)
+      pending.delete(msg.id)
+    }
+  })
+}, 30_000)
+
+afterAll(() => {
+  child.kill()
+})
+
+describe('spec-ingest MCP server', () => {
+  it('lists the recorded-session inspection tool', async () => {
+    const result = (await send('tools/list')) as { tools: { name: string }[] }
+    expect(result.tools.some((tool) => tool.name === 'inspect_recorded_session')).toBe(true)
+  })
+
+  it('returns inventory and candidates for a safe recorded-session directory', async () => {
+    await mkdir(TMP_ROOT, { recursive: true })
+    const dir = await mkdtemp(join(TMP_ROOT, 'recorded-session-'))
+    try {
+      await writeFile(join(dir, 'meta.json'), JSON.stringify({ route: '/gateway?tab=usage', title: 'Gateway' }))
+      await writeFile(join(dir, 'fields.json'), JSON.stringify([{ label: 'Account Number' }]))
+
+      const result = (await send('tools/call', {
+        name: 'inspect_recorded_session',
+        arguments: { path: dir },
+      })) as { content: { text: string }[]; isError: boolean }
+
+      expect(result.isError).toBe(false)
+      const payload = JSON.parse(result.content[0].text) as {
+        inventory: { refusalReasons: string[]; artifacts: Array<{ kind: string }> }
+        candidates: Array<{ kind: string; text: string }>
+      }
+      expect(payload.inventory.refusalReasons).toEqual([])
+      expect(payload.inventory.artifacts.map((artifact) => artifact.kind)).toEqual(['fields', 'meta'])
+      expect(payload.candidates.some((candidate) => candidate.kind === 'state' && candidate.text.includes('/gateway'))).toBe(true)
+      expect(payload.candidates.some((candidate) => candidate.kind === 'field' && candidate.text === 'Account Number')).toBe(true)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('reads image candidates from an OCR sidecar transcript', async () => {
+    await mkdir(TMP_ROOT, { recursive: true })
+    const dir = await mkdtemp(join(TMP_ROOT, 'ocr-sidecar-'))
+    try {
+      const imagePath = join(dir, 'capture.png')
+      const sidecarPath = `${imagePath}.ocr.txt`
+      await writeFile(imagePath, new Uint8Array([137, 80, 78, 71]))
+      await writeFile(sidecarPath, 'Account Number\nOperator must review each import.\n', 'utf-8')
+
+      const result = (await send('tools/call', {
+        name: 'read_spec_document',
+        arguments: { path: imagePath, ocrMode: 'sidecar' },
+      })) as { content: { text: string }[]; isError: boolean }
+
+      expect(result.isError).toBe(false)
+      const payload = JSON.parse(result.content[0].text) as {
+        candidates: Array<{ kind: string; text: string; ref: string }>
+      }
+      expect(payload.candidates.some((candidate) => candidate.kind === 'field' && candidate.text === 'Account Number')).toBe(true)
+      expect(payload.candidates.some((candidate) => candidate.kind === 'rule' && candidate.text === 'Operator must review each import.')).toBe(true)
+      expect(payload.candidates.every((candidate) => candidate.ref.includes('#ocr'))).toBe(true)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('refuses image candidates when OCR mode is off', async () => {
+    await mkdir(TMP_ROOT, { recursive: true })
+    const dir = await mkdtemp(join(TMP_ROOT, 'ocr-off-'))
+    try {
+      const imagePath = join(dir, 'capture.png')
+      await writeFile(imagePath, new Uint8Array([137, 80, 78, 71]))
+
+      const result = (await send('tools/call', {
+        name: 'read_spec_document',
+        arguments: { path: imagePath, ocrMode: 'off' },
+      })) as { content: { text: string }[]; isError: boolean }
+
+      expect(result.isError).toBe(true)
+      expect(result.content[0].text).toContain('image OCR is not configured')
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('returns a refused inventory for recorded-session secrets without crashing the transport', async () => {
+    await mkdir(TMP_ROOT, { recursive: true })
+    const dir = await mkdtemp(join(TMP_ROOT, 'recorded-session-'))
+    try {
+      await writeFile(join(dir, 'requests.json'), JSON.stringify({ headers: { Authorization: 'Bearer abcdefghijklmno' } }))
+
+      const result = (await send('tools/call', {
+        name: 'inspect_recorded_session',
+        arguments: { path: dir },
+      })) as { content: { text: string }[]; isError: boolean }
+
+      expect(result.isError).toBe(false)
+      const payload = JSON.parse(result.content[0].text) as {
+        inventory: { refusalReasons: string[] }
+        refused: boolean
+      }
+      expect(payload.refused).toBe(true)
+      expect(payload.inventory.refusalReasons).toHaveLength(1)
+      expect(payload.inventory.refusalReasons[0]).toContain('authorization')
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+})

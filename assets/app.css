@@ -1,4 +1,91 @@
-/* DEMO/REFERENCE SCAFFOLD -- structural layout only; night.css is the only
-   theme (invariant 7). No <style> attributes are emitted by assistant.py;
-   this file is linked, per invariant 6. */
-body { max-width: 960px; margin: 0 auto; }
+.app-shell {
+   min-height: 100vh;
+   padding: 12px;
+}
+
+.deck {
+   min-height: calc(100vh - 24px);
+   display: grid;
+   grid-template-columns: 260px minmax(0, 1fr);
+   gap: 12px;
+   padding: 12px;
+   border: 1px solid rgba(140, 160, 194, 0.2);
+   border-radius: 18px;
+   background: linear-gradient(180deg, rgba(23, 30, 43, 0.94) 0%, rgba(10, 13, 20, 0.98) 100%);
+   box-shadow: var(--shadow);
+}
+
+.panel {
+   border: 1px solid rgba(140, 160, 194, 0.2);
+   border-radius: 14px;
+   background: linear-gradient(180deg, rgba(189,221,255,0.1) 0%, rgba(20,25,38,0.96) 18%, rgba(15,19,29,0.98) 100%);
+   box-shadow: var(--shadow);
+}
+
+.panel-body {
+   padding: 16px;
+}
+
+.panel-title {
+   margin: 0 0 4px;
+   font-size: 0.96rem;
+   font-weight: 700;
+   letter-spacing: 0.12em;
+   text-transform: uppercase;
+}
+
+.panel-kicker {
+   margin: 0 0 12px;
+   font-size: 0.66rem;
+   letter-spacing: 0.24em;
+   text-transform: uppercase;
+   color: var(--muted);
+}
+
+.main-browser {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+   min-width: 0;
+}
+
+.browser-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   gap: 12px;
+   flex-wrap: wrap;
+   margin-bottom: 12px;
+}
+
+.browser-display {
+   padding: 16px;
+}
+
+.transport-row {
+   display: flex;
+   gap: 8px;
+   flex-wrap: wrap;
+}
+
+.transport-pill {
+   padding: 8px 10px;
+   border-radius: 999px;
+   border: 1px solid rgba(121, 214, 255, 0.18);
+   background: rgba(255,255,255,0.04);
+   font-size: 0.68rem;
+   letter-spacing: 0.16em;
+   text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+   .app-shell {
+      padding: 8px;
+   }
+
+   .deck {
+      grid-template-columns: 1fr;
+      min-height: calc(100vh - 16px);
+      padding: 8px;
+   }
+}

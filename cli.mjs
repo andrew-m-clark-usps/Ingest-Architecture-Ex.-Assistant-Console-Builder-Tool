@@ -12,20 +12,39 @@ import {
   scanForCredentials,
   appendAuditRecord,
   hashContent,
+  readCodebaseCandidates,
   readPdf,
   readPptx,
+  detectMarking,
+  mergeMarkings,
+  readXlsxCandidates,
+  readImageCandidates,
+  configureOcr,
   genericProfile,
   generateApplication,
+  readOpenApiCandidates,
+  buildRecordedSessionInventory,
+  readRecordedSession,
   writeGeneratedFiles,
 } from './dist/index.js'
 
 const TOOL_VERSION = '0.2.0'
-const FLAGS_WITH_VALUES = new Set(['--require', '--profile', '--write-brief', '--generate'])
+const FLAGS_WITH_VALUES = new Set([
+  '--require',
+  '--profile',
+  '--write-brief',
+  '--generate',
+  '--confirm-marked-output',
+  '--ocr-mode',
+  '--ocr-tesseract-cmd',
+  '--ocr-tesseract-lang',
+])
 // --no-ml is accepted and logged but is currently a no-op: there is no
 // inference path in this tool yet, so the deterministic output is always
 // what runs. Once one exists, this flag must produce a byte-identical
 // superset of the deterministic candidates (Spec-Ingest-Tool.md section 5).
-const BOOLEAN_FLAGS = new Set(['--coverage', '--conflicts', '--no-ml'])
+const BOOLEAN_FLAGS = new Set(['--coverage', '--conflicts', '--no-ml', '--inventory'])
+const SESSION_ARTIFACT_NAMES = new Set(['meta.json', 'fields.json', 'ax-tree.json', 'styles.json', 'requests.json', 'network.json', 'har.json'])
 
 function whoAmI() {
   return process.env.USER || process.env.USERNAME || 'cli'
@@ -63,7 +82,12 @@ async function expandFiles(paths) {
   for (const p of paths) {
     const stats = await stat(p)
     if (stats.isDirectory()) {
-      for (const entry of await readdir(p)) result.push(`${p}/${entry}`)
+      const entries = await readdir(p)
+      if (entries.some((entry) => SESSION_ARTIFACT_NAMES.has(entry))) {
+        result.push(p)
+      } else {
+        for (const entry of entries) result.push(`${p}/${entry}`)
+      }
     } else {
       result.push(p)
     }
@@ -78,18 +102,31 @@ async function loadProfile(path) {
 
 async function classifyBytes(path, bytes) {
   const ext = extname(path).toLowerCase()
+  const text = bytes.toString('utf-8')
   if (ext === '.pdf') {
     const pages = await readPdf(new Uint8Array(bytes))
-    return pages.flatMap((p) => classifyLines(p.lines, `${path}#page${p.page}`))
+    const lines = pages.flatMap((p) => p.lines)
+    return { candidates: pages.flatMap((p) => classifyLines(p.lines, `${path}#page${p.page}`)), classification: detectMarking(lines) }
   }
   if (ext === '.pptx') {
     const slides = await readPptx(new Uint8Array(bytes))
-    return slides.flatMap((s) => classifyLines(s.lines, `${path}#slide${s.slide}`))
+    const lines = slides.flatMap((s) => s.lines)
+    return { candidates: slides.flatMap((s) => classifyLines(s.lines, `${path}#slide${s.slide}`)), classification: detectMarking(lines) }
+  }
+  if (ext === '.xlsx') {
+    const candidates = await readXlsxCandidates(new Uint8Array(bytes), path)
+    return { candidates, classification: detectMarking(candidates.map((candidate) => candidate.text)) }
   }
   if (ext === '.xls') {
     throw new Error(`refused: ${path} -- legacy .xls binary format is not supported, only .xlsx`)
   }
-  return classifyLines(bytes.toString('utf-8').split(/\r\n|\r|\n/), path)
+  const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path, { sourcePath: path })
+  if (imageCandidates) return { candidates: imageCandidates, classification: detectMarking(imageCandidates.map((candidate) => candidate.text)) }
+  const openApiCandidates = readOpenApiCandidates(new Uint8Array(bytes), path)
+  if (openApiCandidates) return { candidates: openApiCandidates, classification: detectMarking(openApiCandidates.map((candidate) => candidate.text)) }
+  const codebaseCandidates = readCodebaseCandidates(text, path)
+  const lines = text.split(/\r\n|\r|\n/)
+  return { candidates: [...codebaseCandidates, ...classifyLines(lines, path)], classification: detectMarking(lines) }
 }
 
 // Every read is audited -- path, content hash, and byte count only, never
@@ -97,12 +134,35 @@ async function classifyBytes(path, bytes) {
 // (a reader's guard firing) is logged too, since a naive logger drops
 // exactly the entries someone eventually comes looking for.
 async function readAndAudit(path, who) {
+  const stats = await stat(path)
+  if (stats.isDirectory()) {
+    const inventory = await buildRecordedSessionInventory(path)
+    const classification = detectMarking(inventory.artifacts.map((artifact) => artifact.path))
+    const read = {
+      path,
+      contentHash: hashContent(inventory.artifacts.map((artifact) => `${artifact.path}:${artifact.contentHash}`).join('\n')),
+      byteCount: inventory.artifacts.reduce((sum, artifact) => sum + artifact.byteCount, 0),
+      classification,
+    }
+    try {
+      if (inventory.refusalReasons.length > 0) {
+        throw new Error(`refused: captured artifact contains sensitive value(s): ${inventory.refusalReasons.join(' | ')}`)
+      }
+      const candidates = await readRecordedSession(path)
+      await appendAuditRecord({ who, read })
+      return { candidates, classification }
+    } catch (err) {
+      await appendAuditRecord({ who, read, refusal: { reason: err?.message ?? String(err) } })
+      throw err
+    }
+  }
+
   const bytes = await readFile(path)
-  const read = { path, contentHash: hashContent(bytes), byteCount: bytes.length }
+  const classified = await classifyBytes(path, bytes)
+  const read = { path, contentHash: hashContent(bytes), byteCount: bytes.length, classification: classified.classification }
   try {
-    const candidates = await classifyBytes(path, bytes)
     await appendAuditRecord({ who, read })
-    return candidates
+    return classified
   } catch (err) {
     await appendAuditRecord({ who, read, refusal: { reason: err?.message ?? String(err) } })
     throw err
@@ -153,31 +213,41 @@ async function refuseIfCredentialsFound(allCandidates, who, verb) {
   return 1
 }
 
-async function handleWriteBrief(outPath, allCandidates, corpus, coverage, profile, who) {
-  const refusal = await refuseIfCredentialsFound(allCandidates, who, 'write')
+async function handleWriteBrief(outPath, allReadResults, corpus, coverage, profile, who, confirmedPath) {
+  const classification = mergeMarkings(allReadResults.map((result) => result.classification))
+  if (classification && confirmedPath !== outPath) {
+    console.error(`refused: marked output ${classification} requires --confirm-marked-output ${outPath}`)
+    return 1
+  }
+  const refusal = await refuseIfCredentialsFound(allReadResults.flatMap((result) => result.candidates), who, 'write')
   if (refusal !== undefined) return refusal
 
-  const briefJson = JSON.stringify({ profile: profile.id, coverage, candidateCount: corpus.candidates.length }, null, 2)
+  const briefJson = JSON.stringify({ classification, profile: profile.id, coverage, candidateCount: corpus.candidates.length }, null, 2)
   await writeFile(outPath, briefJson, 'utf-8')
   await appendAuditRecord({
     who,
     against: { profileId: profile.id, toolVersion: TOOL_VERSION },
-    produced: { contentHash: hashContent(briefJson), sections: coverage.filter((c) => !c.unreachable).map((c) => c.section) },
+    produced: { contentHash: hashContent(briefJson), sections: coverage.filter((c) => !c.unreachable).map((c) => c.section), classification },
   })
   console.log(`wrote ${outPath}`)
   return 0
 }
 
-async function handleGenerate(outDir, allCandidates, corpus, profile, who) {
-  const refusal = await refuseIfCredentialsFound(allCandidates, who, 'generate')
+async function handleGenerate(outDir, allReadResults, corpus, profile, who, confirmedPath) {
+  const classification = mergeMarkings(allReadResults.map((result) => result.classification))
+  if (classification && confirmedPath !== outDir) {
+    console.error(`refused: marked output ${classification} requires --confirm-marked-output ${outDir}`)
+    return 1
+  }
+  const refusal = await refuseIfCredentialsFound(allReadResults.flatMap((result) => result.candidates), who, 'generate')
   if (refusal !== undefined) return refusal
 
-  const { files } = generateApplication(corpus, profile)
+  const { files } = generateApplication(corpus, profile, { classification })
   await writeGeneratedFiles(outDir, files)
   await appendAuditRecord({
     who,
     against: { profileId: profile.id, toolVersion: TOOL_VERSION },
-    produced: { contentHash: hashContent(files.map((f) => f.path).join('\n')), sections: files.map((f) => f.path) },
+    produced: { contentHash: hashContent(files.map((f) => f.path).join('\n')), sections: files.map((f) => f.path), classification },
   })
   console.log(`generated ${files.length} file(s) in ${outDir}`)
   return 0
@@ -186,32 +256,80 @@ async function handleGenerate(outDir, allCandidates, corpus, profile, who) {
 async function collectAllCandidates(files, who) {
   const allCandidates = []
   for (const file of files) {
-    allCandidates.push(...(await readAndAudit(file, who)))
+    allCandidates.push(await readAndAudit(file, who))
   }
   return allCandidates
 }
 
+async function handleInventory(paths, who) {
+  const inventories = []
+  let hasRefusal = false
+
+  for (const path of paths) {
+    const stats = await stat(path)
+    if (!stats.isDirectory()) {
+      console.error(`refused: ${path} is not a recorded-session directory`)
+      hasRefusal = true
+      continue
+    }
+
+    const inventory = await buildRecordedSessionInventory(path)
+    inventories.push(inventory)
+    const read = {
+      path,
+      contentHash: hashContent(inventory.artifacts.map((artifact) => `${artifact.path}:${artifact.contentHash}`).join('\n')),
+      byteCount: inventory.artifacts.reduce((sum, artifact) => sum + artifact.byteCount, 0),
+    }
+    if (inventory.refusalReasons.length > 0) {
+      hasRefusal = true
+      await appendAuditRecord({ who, read, refusal: { reason: `inventory refusal: ${inventory.refusalReasons.join(' | ')}` } })
+    } else {
+      await appendAuditRecord({ who, read })
+    }
+  }
+
+  console.log(JSON.stringify(inventories, null, 2))
+  return hasRefusal ? 1 : 0
+}
+
+function reportMissingFiles(rawFiles) {
+  const missing = rawFiles.filter((f) => !existsSync(f))
+  if (missing.length === 0) return undefined
+
+  for (const f of missing) console.error(`missing: ${f}`)
+  return 1
+}
+
 async function main() {
   const { files: rawFiles, values, bools } = parseArgs(process.argv.slice(2))
+  configureOcr(
+    {
+      mode: values['--ocr-mode'],
+      tesseractCommand: values['--ocr-tesseract-cmd'],
+      tesseractLanguage: values['--ocr-tesseract-lang'],
+    },
+    process.env,
+  )
 
   if (rawFiles.length === 0) {
     console.log(
-      'usage: spec-ingest <files or dir> [--coverage] [--conflicts] [--require <section>] ' +
-        '[--profile <file>] [--write-brief <path>] [--generate <dir>] [--no-ml]',
+      'usage: spec-ingest <files or dir> [--coverage] [--conflicts] [--inventory] [--require <section>] ' +
+        '[--profile <file>] [--write-brief <path>] [--generate <dir>] [--confirm-marked-output <path>] ' +
+        '[--ocr-mode <off|sidecar|tesseract>] [--ocr-tesseract-cmd <cmd>] [--ocr-tesseract-lang <lang>] [--no-ml]',
     )
     return 0
   }
 
-  const missing = rawFiles.filter((f) => !existsSync(f))
-  if (missing.length > 0) {
-    for (const f of missing) console.error(`missing: ${f}`)
-    return 1
-  }
+  const missingCode = reportMissingFiles(rawFiles)
+  if (missingCode !== undefined) return missingCode
 
   const who = whoAmI()
   const files = await expandFiles(rawFiles)
+  if (bools['--inventory']) return handleInventory(files, who)
+
   const profile = await loadProfile(values['--profile'])
-  const allCandidates = await collectAllCandidates(files, who)
+  const allReadResults = await collectAllCandidates(files, who)
+  const allCandidates = allReadResults.flatMap((result) => result.candidates)
 
   if (bools['--conflicts']) return reportConflicts(allCandidates)
 
@@ -226,12 +344,12 @@ async function main() {
   }
 
   if (values['--write-brief']) {
-    const code = await handleWriteBrief(values['--write-brief'], allCandidates, corpus, coverage, profile, who)
+    const code = await handleWriteBrief(values['--write-brief'], allReadResults, corpus, coverage, profile, who, values['--confirm-marked-output'])
     if (code !== 0) return code
   }
 
   if (values['--generate']) {
-    const code = await handleGenerate(values['--generate'], allCandidates, corpus, profile, who)
+    const code = await handleGenerate(values['--generate'], allReadResults, corpus, profile, who, values['--confirm-marked-output'])
     if (code !== 0) return code
   }
 

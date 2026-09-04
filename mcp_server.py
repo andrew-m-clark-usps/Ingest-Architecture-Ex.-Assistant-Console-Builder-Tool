@@ -56,7 +56,7 @@ def _call_why(args: dict) -> dict:
             m = assistant.LINE_RE.match(line)
             if not m:
                 continue
-            _checked, title, due, comment = m.groups()
+            _checked, title, due, comment = m.groups()  # noqa: F841
             found_id, captured, fields = assistant._parse_comment_fields(comment)
             if found_id == item_id:
                 return _tool_result(

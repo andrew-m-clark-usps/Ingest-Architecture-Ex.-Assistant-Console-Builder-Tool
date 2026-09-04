@@ -1,6 +1,5 @@
-// DEMO/REFERENCE SCAFFOLD for the Spec-Ingest Tool.
-// See ../Spec-Ingest-Tool.md for the full brief this scaffolds.
-// This is a minimal, runnable skeleton — not the "done means" implementation.
+// Public entry point for the Spec-Ingest Tool.
+// See ../Spec-Ingest-Tool.md for the source brief and intended outputs.
 
 export * from './profiles/index.js'
 export * from './specExtract.js'
@@ -8,9 +7,14 @@ export * from './specMerge.js'
 export * from './reconcile.js'
 export * from './pptx.js'
 export * from './pdfText.js'
+export * from './codebase.js'
 export * from './unzip.js'
 export * from './cmap.js'
 export * from './journalSpec.js'
 export * from './audit.js'
 export * from './credentialScan.js'
 export * from './generate.js'
+export * from './markings.js'
+export * from './openapi.js'
+export * from './xlsx.js'
+export * from './ocr.js'
