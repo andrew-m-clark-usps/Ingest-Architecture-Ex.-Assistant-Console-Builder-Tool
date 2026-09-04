@@ -12,8 +12,9 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 > [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). This branch now carries the
 > implemented cross-product build-out: the ingest pipeline has real PDF/PPTX/
 > XLSX/OpenAPI/codebase/session readers and generation paths, the React and
-> static UI surfaces are built and testable, and the remaining major ingest
-> gap is the true OCR/image reader.
+> static UI surfaces are built and testable, and OCR/image ingestion now ships
+> as a pluggable seam (sidecar transcript mode and optional system Tesseract)
+> without adding heavyweight runtime dependencies.
 
 ## Documentation
 
@@ -85,7 +86,17 @@ provider SDK/API key in anything shipped. The parity harness
 The ingest surface is primarily a library + CLI/MCP toolchain rather than a
 single visual app. Current implemented readers include PDF, PPTX, XLSX,
 OpenAPI JSON, source-code structure, and recorded-session/running-system
-capture inventory, with marking propagation and repository generation.
+capture inventory, plus image-document OCR via configured seam, with marking
+propagation and repository generation.
+
+OCR runtime configuration (CLI + MCP):
+
+- `SPEC_INGEST_OCR_MODE=off` (default): image files are refused with a clear message.
+- `SPEC_INGEST_OCR_MODE=sidecar`: reads OCR text from `.ocr.txt` sidecars adjacent to images (`image.png.ocr.txt` or `image.ocr.txt`).
+- `SPEC_INGEST_OCR_MODE=tesseract`: uses a system-installed Tesseract binary.
+- Optional overrides for Tesseract mode:
+  - `SPEC_INGEST_TESSERACT_CMD` (default: `tesseract`)
+  - `SPEC_INGEST_TESSERACT_LANG` (default: `eng`)
 
 ### Addressing Console
 

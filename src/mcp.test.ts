@@ -19,7 +19,9 @@ function send(method: string, params?: unknown): Promise<unknown> {
 }
 
 beforeAll(() => {
-  child = spawn('node', ['mcp.mjs'])
+  child = spawn('node', ['mcp.mjs'], {
+    env: { ...process.env, SPEC_INGEST_OCR_MODE: 'sidecar' },
+  })
   child.stdout.on('data', (chunk: Buffer) => {
     buffer += chunk.toString()
     let newlineIndex: number
@@ -65,6 +67,32 @@ describe('spec-ingest MCP server', () => {
       expect(payload.inventory.artifacts.map((artifact) => artifact.kind)).toEqual(['fields', 'meta'])
       expect(payload.candidates.some((candidate) => candidate.kind === 'state' && candidate.text.includes('/gateway'))).toBe(true)
       expect(payload.candidates.some((candidate) => candidate.kind === 'field' && candidate.text === 'Account Number')).toBe(true)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('reads image candidates from an OCR sidecar transcript', async () => {
+    await mkdir(TMP_ROOT, { recursive: true })
+    const dir = await mkdtemp(join(TMP_ROOT, 'ocr-sidecar-'))
+    try {
+      const imagePath = join(dir, 'capture.png')
+      const sidecarPath = `${imagePath}.ocr.txt`
+      await writeFile(imagePath, new Uint8Array([137, 80, 78, 71]))
+      await writeFile(sidecarPath, 'Account Number\nOperator must review each import.\n', 'utf-8')
+
+      const result = (await send('tools/call', {
+        name: 'read_spec_document',
+        arguments: { path: imagePath },
+      })) as { content: { text: string }[]; isError: boolean }
+
+      expect(result.isError).toBe(false)
+      const payload = JSON.parse(result.content[0].text) as {
+        candidates: Array<{ kind: string; text: string; ref: string }>
+      }
+      expect(payload.candidates.some((candidate) => candidate.kind === 'field' && candidate.text === 'Account Number')).toBe(true)
+      expect(payload.candidates.some((candidate) => candidate.kind === 'rule' && candidate.text === 'Operator must review each import.')).toBe(true)
+      expect(payload.candidates.every((candidate) => candidate.ref.includes('#ocr'))).toBe(true)
     } finally {
       await rm(dir, { recursive: true, force: true })
     }
