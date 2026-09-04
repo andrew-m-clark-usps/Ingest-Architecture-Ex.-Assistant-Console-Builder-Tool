@@ -17,6 +17,12 @@ export interface OcrEnvironmentConfig {
   engineId?: string
 }
 
+export interface OcrRuntimeOptions {
+  mode?: string
+  tesseractCommand?: string
+  tesseractLanguage?: string
+}
+
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff'])
 
 let activeOcrEngine: OcrEngine | undefined
@@ -127,8 +133,8 @@ export function getOcrEngineId(): string | undefined {
   return activeOcrEngine?.id
 }
 
-export function configureOcrFromEnvironment(env: NodeJS.ProcessEnv = process.env): OcrEnvironmentConfig {
-  const mode = parseMode(env.SPEC_INGEST_OCR_MODE)
+export function configureOcr(options?: OcrRuntimeOptions, env: NodeJS.ProcessEnv = process.env): OcrEnvironmentConfig {
+  const mode = parseMode(options?.mode ?? env.SPEC_INGEST_OCR_MODE)
   if (mode === 'off') {
     clearOcrEngine()
     return { mode }
@@ -138,10 +144,14 @@ export function configureOcrFromEnvironment(env: NodeJS.ProcessEnv = process.env
     return { mode, engineId: getOcrEngineId() }
   }
 
-  const command = env.SPEC_INGEST_TESSERACT_CMD ?? 'tesseract'
-  const language = env.SPEC_INGEST_TESSERACT_LANG ?? 'eng'
+  const command = options?.tesseractCommand ?? env.SPEC_INGEST_TESSERACT_CMD ?? 'tesseract'
+  const language = options?.tesseractLanguage ?? env.SPEC_INGEST_TESSERACT_LANG ?? 'eng'
   setOcrEngine(createTesseractEngine(command, language))
   return { mode, engineId: getOcrEngineId() }
+}
+
+export function configureOcrFromEnvironment(env: NodeJS.ProcessEnv = process.env): OcrEnvironmentConfig {
+  return configureOcr(undefined, env)
 }
 
 export function isImageDocument(pathOrExtension: string): boolean {

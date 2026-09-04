@@ -97,6 +97,9 @@ OCR runtime configuration (CLI + MCP):
 - Optional overrides for Tesseract mode:
   - `SPEC_INGEST_TESSERACT_CMD` (default: `tesseract`)
   - `SPEC_INGEST_TESSERACT_LANG` (default: `eng`)
+- Per-run overrides are also available:
+  - CLI flags: `--ocr-mode`, `--ocr-tesseract-cmd`, `--ocr-tesseract-lang`
+  - MCP `read_spec_document` arguments: `ocrMode`, `ocrTesseractCmd`, `ocrTesseractLang`
 
 ### Addressing Console
 

@@ -19,7 +19,7 @@ import {
   mergeMarkings,
   readXlsxCandidates,
   readImageCandidates,
-  configureOcrFromEnvironment,
+  configureOcr,
   genericProfile,
   generateApplication,
   readOpenApiCandidates,
@@ -29,7 +29,16 @@ import {
 } from './dist/index.js'
 
 const TOOL_VERSION = '0.2.0'
-const FLAGS_WITH_VALUES = new Set(['--require', '--profile', '--write-brief', '--generate', '--confirm-marked-output'])
+const FLAGS_WITH_VALUES = new Set([
+  '--require',
+  '--profile',
+  '--write-brief',
+  '--generate',
+  '--confirm-marked-output',
+  '--ocr-mode',
+  '--ocr-tesseract-cmd',
+  '--ocr-tesseract-lang',
+])
 // --no-ml is accepted and logged but is currently a no-op: there is no
 // inference path in this tool yet, so the deterministic output is always
 // what runs. Once one exists, this flag must produce a byte-identical
@@ -292,13 +301,21 @@ function reportMissingFiles(rawFiles) {
 }
 
 async function main() {
-  configureOcrFromEnvironment(process.env)
   const { files: rawFiles, values, bools } = parseArgs(process.argv.slice(2))
+  configureOcr(
+    {
+      mode: values['--ocr-mode'],
+      tesseractCommand: values['--ocr-tesseract-cmd'],
+      tesseractLanguage: values['--ocr-tesseract-lang'],
+    },
+    process.env,
+  )
 
   if (rawFiles.length === 0) {
     console.log(
       'usage: spec-ingest <files or dir> [--coverage] [--conflicts] [--inventory] [--require <section>] ' +
-        '[--profile <file>] [--write-brief <path>] [--generate <dir>] [--confirm-marked-output <path>] [--no-ml]',
+        '[--profile <file>] [--write-brief <path>] [--generate <dir>] [--confirm-marked-output <path>] ' +
+        '[--ocr-mode <off|sidecar|tesseract>] [--ocr-tesseract-cmd <cmd>] [--ocr-tesseract-lang <lang>] [--no-ml]',
     )
     return 0
   }

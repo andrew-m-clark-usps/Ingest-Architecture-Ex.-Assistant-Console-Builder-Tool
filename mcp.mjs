@@ -22,6 +22,7 @@ import {
   readPptx,
   readXlsxCandidates,
   readImageCandidates,
+  configureOcr,
   configureOcrFromEnvironment,
   readOpenApiCandidates,
   buildRecordedSessionInventory,
@@ -59,6 +60,14 @@ async function callTool(name, args) {
   if (name === 'read_spec_document') {
     const path = args?.path
     if (!path) throw new Error('read_spec_document requires "path"')
+    configureOcr(
+      {
+        mode: args?.ocrMode,
+        tesseractCommand: args?.ocrTesseractCmd,
+        tesseractLanguage: args?.ocrTesseractLang,
+      },
+      process.env,
+    )
     const real = await resolveConfined(path)
     const bytes = await readFile(real)
     const ext = extname(real).toLowerCase()

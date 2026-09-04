@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { afterEach, describe, expect, it } from 'vitest'
-import { clearOcrEngine, configureOcrFromEnvironment, getOcrEngineId, isImageDocument, readImageCandidates, setOcrEngine } from './ocr.js'
+import { clearOcrEngine, configureOcr, configureOcrFromEnvironment, getOcrEngineId, isImageDocument, readImageCandidates, setOcrEngine } from './ocr.js'
 
 afterEach(() => {
   clearOcrEngine()
@@ -106,5 +106,33 @@ describe('configureOcrFromEnvironment', () => {
 
   it('rejects unsupported OCR mode values', () => {
     expect(() => configureOcrFromEnvironment({ SPEC_INGEST_OCR_MODE: 'magic' })).toThrow(/unknown OCR mode/i)
+  })
+})
+
+describe('configureOcr', () => {
+  it('uses explicit mode overrides ahead of environment defaults', () => {
+    const configured = configureOcr(
+      { mode: 'sidecar' },
+      {
+        SPEC_INGEST_OCR_MODE: 'off',
+      },
+    )
+    expect(configured.mode).toBe('sidecar')
+    expect(configured.engineId).toBe('sidecar')
+  })
+
+  it('uses explicit tesseract overrides for command and language', () => {
+    const configured = configureOcr(
+      {
+        mode: 'tesseract',
+        tesseractCommand: 'custom-tesseract',
+        tesseractLanguage: 'eng',
+      },
+      {
+        SPEC_INGEST_OCR_MODE: 'off',
+      },
+    )
+    expect(configured.mode).toBe('tesseract')
+    expect(configured.engineId).toBe('tesseract')
   })
 })

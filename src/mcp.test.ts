@@ -19,9 +19,7 @@ function send(method: string, params?: unknown): Promise<unknown> {
 }
 
 beforeAll(() => {
-  child = spawn('node', ['mcp.mjs'], {
-    env: { ...process.env, SPEC_INGEST_OCR_MODE: 'sidecar' },
-  })
+  child = spawn('node', ['mcp.mjs'])
   child.stdout.on('data', (chunk: Buffer) => {
     buffer += chunk.toString()
     let newlineIndex: number
@@ -83,7 +81,7 @@ describe('spec-ingest MCP server', () => {
 
       const result = (await send('tools/call', {
         name: 'read_spec_document',
-        arguments: { path: imagePath },
+        arguments: { path: imagePath, ocrMode: 'sidecar' },
       })) as { content: { text: string }[]; isError: boolean }
 
       expect(result.isError).toBe(false)
@@ -93,6 +91,25 @@ describe('spec-ingest MCP server', () => {
       expect(payload.candidates.some((candidate) => candidate.kind === 'field' && candidate.text === 'Account Number')).toBe(true)
       expect(payload.candidates.some((candidate) => candidate.kind === 'rule' && candidate.text === 'Operator must review each import.')).toBe(true)
       expect(payload.candidates.every((candidate) => candidate.ref.includes('#ocr'))).toBe(true)
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('refuses image candidates when OCR mode is off', async () => {
+    await mkdir(TMP_ROOT, { recursive: true })
+    const dir = await mkdtemp(join(TMP_ROOT, 'ocr-off-'))
+    try {
+      const imagePath = join(dir, 'capture.png')
+      await writeFile(imagePath, new Uint8Array([137, 80, 78, 71]))
+
+      const result = (await send('tools/call', {
+        name: 'read_spec_document',
+        arguments: { path: imagePath, ocrMode: 'off' },
+      })) as { content: { text: string }[]; isError: boolean }
+
+      expect(result.isError).toBe(true)
+      expect(result.content[0].text).toContain('image OCR is not configured')
     } finally {
       await rm(dir, { recursive: true, force: true })
     }
