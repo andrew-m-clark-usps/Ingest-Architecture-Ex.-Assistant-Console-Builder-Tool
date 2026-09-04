@@ -186,6 +186,46 @@ class TestContrastAndSpecCheck(unittest.TestCase):
         self.assertEqual(spec_check.check_files(), [])
 
 
+class TestGuardrails(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
+
+    def test_stdlib_only_imports_outside_tools(self):
+        import guardrails
+
+        self.assertEqual(guardrails.check_stdlib_only(), [])
+
+    def test_no_model_provider_sdk_mentioned(self):
+        import guardrails
+
+        self.assertEqual(guardrails.check_no_model_provider_sdk(), [])
+
+    def test_rendered_site_and_dashboard_have_no_script_style_or_on_attrs(self):
+        import guardrails
+
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+
+        orig_root = assistant.ROOT
+        assistant_site = tmp / "site"
+        try:
+            # cmd_site writes to ROOT / "site" -- point ROOT at a scratch
+            # dir for this test only, then restore it.
+            assistant.ROOT = tmp
+            assistant.cmd_site(argparse.Namespace())
+        finally:
+            assistant.ROOT = orig_root
+
+        import dashboard.dashboard as dashboard_module
+
+        dashboard_pages = dashboard_module.build(out_dir=tmp / "dashboard-site", sample_path=tmp / "missing.json")
+
+        html_paths = list(assistant_site.glob("*.html")) + dashboard_pages
+        self.assertTrue(html_paths)
+        self.assertEqual(guardrails.check_no_script_in_html(html_paths), [])
+
+
 if __name__ == "__main__":
     unittest.main()
 
