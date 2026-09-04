@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import unittest.mock
 import zipfile
+from datetime import date
 from pathlib import Path
 
 import assistant
@@ -39,14 +40,14 @@ class TestClassification(unittest.TestCase):
 
     def test_weekday_phrase_resolves_relative_to_a_fixed_today(self):
         # A Wednesday; "by friday" should resolve 2 days out.
-        today = assistant.date(2026, 8, 5)
+        today = date(2026, 8, 5)
         title, due = strip_date_phrase("send the report by friday", today=today)
         self.assertEqual(due, "2026-08-07")
         self.assertNotIn("by friday", title)
 
     def test_weekday_phrase_on_that_weekday_resolves_to_next_week(self):
         # A Friday; "by friday" must mean NEXT Friday, not today.
-        today = assistant.date(2026, 8, 7)
+        today = date(2026, 8, 7)
         _title, due = strip_date_phrase("send the report by friday", today=today)
         self.assertEqual(due, "2026-08-14")
 
@@ -226,4 +227,3 @@ class TestGuardrails(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
