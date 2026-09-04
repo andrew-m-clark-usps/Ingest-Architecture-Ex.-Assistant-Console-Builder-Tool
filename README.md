@@ -1,6 +1,6 @@
 # Ingest-Architecture-Ex.-Assistant-Console-Builder-Tool
 
-Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
+Full-stack workspace for the Spec-Ingest Tool, Addressing Console, and Exec-Assistant surfaces.
 
 ![status](https://img.shields.io/badge/status-active%20implementation-blue)
 ![node](https://img.shields.io/badge/node-%3E%3D20-green)
@@ -15,6 +15,13 @@ Full stack Ingest Architecture Infra, Ex. Assistant, Console Building Tool
 > static UI surfaces are built and testable, and OCR/image ingestion now ships
 > as a pluggable seam (sidecar transcript mode and optional system Tesseract)
 > without adding heavyweight runtime dependencies.
+
+## At a glance
+
+- Monorepo with three products and shared guardrails.
+- Deterministic ingest pipeline (PDF/PPTX/XLSX/OpenAPI/codebase/session + OCR seam).
+- React console and static dashboard surfaces with test coverage.
+- Security-first posture: no model-provider SDK/API keys in shipped outputs.
 
 ## Documentation
 
@@ -59,19 +66,19 @@ builds, passes its tests, and has no new vulnerabilities.
 > dangling job keys, mixed titles). Cut new branches from and merge back
 > into the branch that owns the file you're changing instead.
 
-## What the tool does: old infrastructure to new infrastructure
+## What the Spec-Ingest Tool does
 
 ![Old infrastructure to new infrastructure, via the Spec-Ingest Tool](docs/images/old-to-new-infrastructure.png)
 
-The Spec-Ingest Tool reads whatever exists today — a legacy application,
-manual deploys, no tests, tribal knowledge scattered across decks/PDFs/
-spreadsheets/chat threads — and produces a new repository: application,
-test suite, CI workflow, Terraform, and an audit log, with no model/
-provider SDK/API key in anything shipped. The parity harness
-(`tools/twinning.mjs`) then verifies the rebuild against the original so
-"new" is proven to behave like "old," not just assumed to.
+The Spec-Ingest Tool reads whatever exists today — legacy applications,
+manual deploy steps, sparse tests, and fragmented source materials (decks,
+PDFs, spreadsheets, chat notes) — and produces a new repository with an
+application, tests, CI workflow, Terraform, and an audit trail, while keeping
+the "no model-provider SDK/API key in shipped output" invariant intact. The
+parity harness (`tools/twinning.mjs`) then verifies that the rebuild behaves
+like the original system.
 
-## What's in this repo
+## Products in this repo
 
 | Product | Branch | What it describes |
 | --- | --- | --- |
@@ -105,21 +112,20 @@ OCR runtime configuration (CLI + MCP):
 
 ![Addressing Console — payment ledger view](docs/images/addressing-console-current.png)
 
-Current screenshot: the rebuilt payment-ledger view with the retro deck shell,
-transport chrome, balance-over-time chart, per-account summary, and loaded
-sample transactions.
+Rebuilt payment-ledger view with the retro deck shell, transport chrome,
+balance-over-time chart, per-account summary, and loaded sample transactions.
 
 ### Assistant + Dashboard + Parity Harness
 
 ![Standalone console workstation](docs/images/helixamp-console-current.png)
 
-Current screenshot: the standalone React workstation shell used by the
-Exec-Assistant branch's console surface.
+Standalone React workstation shell used by the Exec-Assistant branch's
+console surface.
 
 ![Exec-Assistant static dashboard overview](docs/images/exec-dashboard-current.png)
 
-Current screenshot: the generated static dashboard overview page with the same
-panelized retro shell language, still dark-only and no-script.
+Generated static dashboard overview page with the same panelized retro shell
+language, still dark-only and no-script.
 
 Each brief file starts with a condensed `## Instructions` section (the key
 rules distilled into bullets) followed by `## Additional Guidelines`, which
