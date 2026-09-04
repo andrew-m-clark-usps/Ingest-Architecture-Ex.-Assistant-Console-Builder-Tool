@@ -104,7 +104,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <ViewCompactRoundedIcon sx={{ color: '#79d6ff' }} />
           <Box sx={{ minWidth: 0, flexGrow: 1 }}>
             <Typography variant="subtitle2" color="text.secondary">
-              Addressing Console Transport
+              Main browser
             </Typography>
             <Typography component="div" variant="h4" sx={{ fontSize: { xs: '0.95rem', md: '1.1rem' }, overflowWrap: 'anywhere' }}>
               {active.label}
@@ -153,7 +153,7 @@ export function Layout({ children }: { children: ReactNode }) {
       >
         <Box sx={{ p: 2 }}>
           <Paper sx={{ p: 1.75, mb: 2.25, bgcolor: 'rgba(10,14,25,0.84)' }}>
-            {panelChrome('Main deck', 'Window A')}
+            {panelChrome('Navigator deck', 'Deck A')}
             <Typography variant="body2" color="text.secondary">
               Dense route browser with per-section level meters and transport controls.
             </Typography>
@@ -212,7 +212,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: { xs: 1.25, md: 2 } }}>
             <Stack spacing={1.25} sx={{ display: { xs: 'flex', md: 'none' }, mb: 1.25 }}>
               <Paper sx={{ p: 1.25, bgcolor: 'rgba(10,14,25,0.88)' }}>
-                {panelChrome('Quick deck', 'Mobile route browser')}
+                {panelChrome('Navigator deck', 'Mobile route browser')}
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}>
                   {SECTIONS.map((section) => (
                     <ListItemButton
@@ -249,7 +249,7 @@ export function Layout({ children }: { children: ReactNode }) {
               }}
             >
               <Paper sx={{ p: { xs: 1.5, md: 2 }, minWidth: 0, bgcolor: 'rgba(13,18,31,0.82)' }}>
-                {panelChrome(active.label, 'Focused module')}
+                {panelChrome(active.label, 'Main browser')}
                 {children}
               </Paper>
 

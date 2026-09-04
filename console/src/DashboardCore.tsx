@@ -134,9 +134,7 @@ export const DashboardCore: React.FC = () => {
                   <Layers size={16} color="#07111f" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.24em', color: shell.muted }}>
-                    Deck A
-                  </div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.24em', color: shell.muted }}>Navigator deck</div>
                   <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     Helixamp Console
                   </div>
@@ -221,9 +219,7 @@ export const DashboardCore: React.FC = () => {
               boxShadow: shell.glow,
             }}
           >
-            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted, marginBottom: '10px' }}>
-              Playlist Browser
-            </div>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.22em', color: shell.muted, marginBottom: '10px' }}>Section queue</div>
             <div style={{ display: 'grid', gap: '8px' }}>
               {queue.map((item, index) => (
                 <div
