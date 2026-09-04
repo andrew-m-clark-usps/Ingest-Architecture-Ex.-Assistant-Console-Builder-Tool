@@ -21,6 +21,7 @@ import {
   readPdf,
   readPptx,
   readXlsxCandidates,
+  readImageCandidates,
   readOpenApiCandidates,
   buildRecordedSessionInventory,
   readRecordedSession,
@@ -70,6 +71,8 @@ async function callTool(name, args) {
     if (ext === '.xlsx') {
       return { candidates: await readXlsxCandidates(new Uint8Array(bytes), path) }
     }
+    const imageCandidates = await readImageCandidates(new Uint8Array(bytes), path)
+    if (imageCandidates) return { candidates: imageCandidates }
     const openApiCandidates = readOpenApiCandidates(new Uint8Array(bytes), path)
     if (openApiCandidates) return { candidates: openApiCandidates }
     const text = bytes.toString('utf-8')
