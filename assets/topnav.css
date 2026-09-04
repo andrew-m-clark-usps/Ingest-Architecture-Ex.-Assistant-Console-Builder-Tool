@@ -1,6 +1,9 @@
 .topnav {
    display: grid;
    gap: 12px;
+   position: sticky;
+   top: 8px;
+   align-self: start;
 }
 
 .topnav .panel-body {

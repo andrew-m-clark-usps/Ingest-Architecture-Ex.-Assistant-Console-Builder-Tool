@@ -62,6 +62,12 @@
    padding: 16px;
 }
 
+/* If pages use :target navigation, keep the target panel visible below
+   the fixed shell chrome instead of jumping it off-screen. */
+.browser-display :target {
+   scroll-margin-top: 96px;
+}
+
 .transport-row {
    display: flex;
    gap: 8px;
