@@ -72,7 +72,7 @@ function callTool(name: string, args: Record<string, unknown>): ToolResult {
 
 const rl = createInterface({ input: process.stdin })
 
-rl.on('line', (line) => {
+rl.on('line', (line: string) => {
   let msg: { id?: unknown; method?: string; params?: { name?: string; arguments?: Record<string, unknown> } }
   try {
     msg = JSON.parse(line)

@@ -15,10 +15,12 @@ import {
   readPdf,
   readPptx,
   genericProfile,
+  generateApplication,
+  writeGeneratedFiles,
 } from './dist/index.js'
 
 const TOOL_VERSION = '0.2.0'
-const FLAGS_WITH_VALUES = new Set(['--require', '--profile', '--write-brief'])
+const FLAGS_WITH_VALUES = new Set(['--require', '--profile', '--write-brief', '--generate'])
 // --no-ml is accepted and logged but is currently a no-op: there is no
 // inference path in this tool yet, so the deterministic output is always
 // what runs. Once one exists, this flag must produce a byte-identical
@@ -107,13 +109,95 @@ async function readAndAudit(path, who) {
   }
 }
 
+function reportConflicts(allCandidates) {
+  const contradictions = detectContradictions(allCandidates)
+  if (contradictions.length === 0) {
+    console.log('no contradictions found')
+  } else {
+    for (const c of contradictions) {
+      console.log(`CONTRADICTION (${c.because}):`)
+      console.log(`  ${c.a.ref}: ${c.a.text}`)
+      console.log(`  ${c.b.ref}: ${c.b.text}`)
+    }
+  }
+  return contradictions.length > 0 ? 1 : 0
+}
+
+function formatCoverageLine(report) {
+  const status = report.unreachable ? 'UNREACHABLE' : `${report.count} candidate(s)`
+  return `${report.section}. ${report.title}: ${status}`
+}
+
+function printCoverage(coverage) {
+  for (const report of coverage) console.log(formatCoverageLine(report))
+}
+
+function checkRequiredSection(coverage, requiredSection) {
+  const required = coverage.find((r) => r.section === requiredSection)
+  if (!required || required.unreachable) {
+    console.error(`refused: required section "${requiredSection}" is unreachable`)
+    return 1
+  }
+  return 0
+}
+
+// Scan for credential shapes before writing a brief or generating an
+// app -- refuse, naming the source and which shape matched, rather than
+// redacting silently. Returns undefined when clean, or the exit code to
+// return immediately when refused.
+async function refuseIfCredentialsFound(allCandidates, who, verb) {
+  const findings = scanForCredentials(allCandidates)
+  if (findings.length === 0) return undefined
+  for (const f of findings) console.error(`refused to ${verb}: ${f.ref} matches credential shape "${f.shape}"`)
+  await appendAuditRecord({ who, refusal: { reason: `credential shape(s) found: ${findings.map((f) => f.shape).join(', ')}` } })
+  return 1
+}
+
+async function handleWriteBrief(outPath, allCandidates, corpus, coverage, profile, who) {
+  const refusal = await refuseIfCredentialsFound(allCandidates, who, 'write')
+  if (refusal !== undefined) return refusal
+
+  const briefJson = JSON.stringify({ profile: profile.id, coverage, candidateCount: corpus.candidates.length }, null, 2)
+  await writeFile(outPath, briefJson, 'utf-8')
+  await appendAuditRecord({
+    who,
+    against: { profileId: profile.id, toolVersion: TOOL_VERSION },
+    produced: { contentHash: hashContent(briefJson), sections: coverage.filter((c) => !c.unreachable).map((c) => c.section) },
+  })
+  console.log(`wrote ${outPath}`)
+  return 0
+}
+
+async function handleGenerate(outDir, allCandidates, corpus, profile, who) {
+  const refusal = await refuseIfCredentialsFound(allCandidates, who, 'generate')
+  if (refusal !== undefined) return refusal
+
+  const { files } = generateApplication(corpus, profile)
+  await writeGeneratedFiles(outDir, files)
+  await appendAuditRecord({
+    who,
+    against: { profileId: profile.id, toolVersion: TOOL_VERSION },
+    produced: { contentHash: hashContent(files.map((f) => f.path).join('\n')), sections: files.map((f) => f.path) },
+  })
+  console.log(`generated ${files.length} file(s) in ${outDir}`)
+  return 0
+}
+
+async function collectAllCandidates(files, who) {
+  const allCandidates = []
+  for (const file of files) {
+    allCandidates.push(...(await readAndAudit(file, who)))
+  }
+  return allCandidates
+}
+
 async function main() {
   const { files: rawFiles, values, bools } = parseArgs(process.argv.slice(2))
 
   if (rawFiles.length === 0) {
     console.log(
       'usage: spec-ingest <files or dir> [--coverage] [--conflicts] [--require <section>] ' +
-        '[--profile <file>] [--write-brief <path>] [--no-ml]',
+        '[--profile <file>] [--write-brief <path>] [--generate <dir>] [--no-ml]',
     )
     return 0
   }
@@ -127,72 +211,36 @@ async function main() {
   const who = whoAmI()
   const files = await expandFiles(rawFiles)
   const profile = await loadProfile(values['--profile'])
-  const allCandidates = []
-  for (const file of files) {
-    allCandidates.push(...(await readAndAudit(file, who)))
-  }
+  const allCandidates = await collectAllCandidates(files, who)
 
-  if (bools['--conflicts']) {
-    const contradictions = detectContradictions(allCandidates)
-    if (contradictions.length === 0) {
-      console.log('no contradictions found')
-    } else {
-      for (const c of contradictions) {
-        console.log(`CONTRADICTION (${c.because}):`)
-        console.log(`  ${c.a.ref}: ${c.a.text}`)
-        console.log(`  ${c.b.ref}: ${c.b.text}`)
-      }
-    }
-    return contradictions.length > 0 ? 1 : 0
-  }
+  if (bools['--conflicts']) return reportConflicts(allCandidates)
 
   const corpus = mergeCandidates(allCandidates)
   const coverage = scoreCoverage(corpus, profile)
 
-  if (bools['--coverage']) {
-    for (const report of coverage) {
-      console.log(`${report.section}. ${report.title}: ${report.unreachable ? 'UNREACHABLE' : `${report.count} candidate(s)`}`)
-    }
-  }
+  if (bools['--coverage']) printCoverage(coverage)
 
   if (values['--require']) {
-    const required = coverage.find((r) => r.section === values['--require'])
-    if (!required || required.unreachable) {
-      console.error(`refused: required section "${values['--require']}" is unreachable`)
-      return 1
-    }
+    const code = checkRequiredSection(coverage, values['--require'])
+    if (code !== 0) return code
   }
 
   if (values['--write-brief']) {
-    // Scan for credential shapes before writing -- refuse, naming the
-    // source and which shape matched, rather than redacting silently.
-    const findings = scanForCredentials(allCandidates)
-    if (findings.length > 0) {
-      for (const f of findings) console.error(`refused to write: ${f.ref} matches credential shape "${f.shape}"`)
-      await appendAuditRecord({ who, refusal: { reason: `credential shape(s) found: ${findings.map((f) => f.shape).join(', ')}` } })
-      return 1
-    }
-    const briefJson = JSON.stringify(
-      { profile: profile.id, coverage, candidateCount: corpus.candidates.length },
-      null,
-      2,
-    )
-    await writeFile(values['--write-brief'], briefJson, 'utf-8')
-    await appendAuditRecord({
-      who,
-      against: { profileId: profile.id, toolVersion: TOOL_VERSION },
-      produced: { contentHash: hashContent(briefJson), sections: coverage.filter((c) => !c.unreachable).map((c) => c.section) },
-    })
-    console.log(`wrote ${values['--write-brief']}`)
+    const code = await handleWriteBrief(values['--write-brief'], allCandidates, corpus, coverage, profile, who)
+    if (code !== 0) return code
+  }
+
+  if (values['--generate']) {
+    const code = await handleGenerate(values['--generate'], allCandidates, corpus, profile, who)
+    if (code !== 0) return code
   }
 
   return 0
 }
 
-
-main()
-  .then((code) => process.exit(code))
-  .catch((err) => {
-    console.error(err?.message ?? String(err))
-    process.exit(1)
-  })
+try {
+  process.exit(await main())
+} catch (err) {
+  console.error(err?.message ?? String(err))
+  process.exit(1)
+}
