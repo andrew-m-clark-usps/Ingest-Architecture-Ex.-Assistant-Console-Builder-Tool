@@ -278,10 +278,31 @@ def cmd_site(_args: argparse.Namespace) -> None:
     (site / "index.html").write_text(
         "<!doctype html><html><head><meta charset='utf-8'>"
         "<link rel='stylesheet' href='../assets/night.css'>"
-        "<title>Assistant</title></head>"
-        "<body><h1>Assistant</h1>"
-        "<p>See Exec-Assistant.md for the full 8-page static site spec.</p>"
-        "</body></html>",
+        "<link rel='stylesheet' href='../assets/app.css'>"
+        "<link rel='stylesheet' href='../assets/topnav.css'>"
+        "<link rel='stylesheet' href='../assets/widgets.css'>"
+        "<title>Assistant</title></head><body>"
+        "<div class='app-shell'><div class='deck'>"
+        "<nav class='topnav panel'><div class='panel-body'>"
+        "<p class='topnav-title'>Navigator deck</p>"
+        "<div class='topnav-links'>"
+        "<span aria-current='page'><span>Assistant</span><span class='topnav-code'>AST</span></span>"
+        "<a href='../dashboard/site/overview.html'><span>Overview</span><span class='topnav-code'>OVR</span></a>"
+        "<a href='../dashboard/site/activity.html'><span>Activity</span><span class='topnav-code'>ACT</span></a>"
+        "</div></div></nav>"
+        "<main class='main-browser panel'><div class='panel-body'>"
+        "<div class='browser-header'><div>"
+        "<p class='panel-kicker'>Main browser</p><h1 class='panel-title'>Assistant Console</h1>"
+        "</div><div class='transport-row'>"
+        "<span class='transport-pill'>Play</span><span class='transport-pill'>Mix</span><span class='transport-pill'>EQ</span>"
+        "</div></div>"
+        "<div class='browser-display'><div class='widget-grid'>"
+        "<div class='widget'><p class='widget-label'>Workstream</p><p class='widget-value'>Commitments</p></div>"
+        "<div class='widget'><p class='widget-label'>Output</p><p class='widget-value'>Brief + Tasks</p></div>"
+        "<div class='widget'><p class='widget-label'>Mode</p><p class='widget-value'>Dark only</p></div>"
+        "<div class='widget'><p class='widget-label'>Guardrails</p><p class='widget-value'>No script surface</p></div>"
+        "</div><p>See Exec-Assistant.md for the full static site specification.</p></div>"
+        "</div></main></div></div></body></html>",
         encoding="utf-8",
     )
     print(f"wrote {site / 'index.html'}")
