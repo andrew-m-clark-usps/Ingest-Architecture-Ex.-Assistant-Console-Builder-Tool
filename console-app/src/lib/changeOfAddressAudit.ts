@@ -39,8 +39,46 @@ const RETENTION_MONTHS = 48
 
 function monthsBetween(from: string, to: Date): number {
   const d = new Date(from)
-  if (Number.isNaN(d.getTime())) return NaN
+  if (Number.isNaN(d.getTime())) return Number.NaN
   return (to.getFullYear() - d.getFullYear()) * 12 + (to.getMonth() - d.getMonth())
+}
+
+function checkPromisedAddress(def: ReturnCodeDef, record: ChangeOfAddressRecord, findings: AuditFinding[]): void {
+  if (def.newAddressProvided && !record.newAddress) {
+    findings.push({ code: 'PROMISED_NEW_ADDRESS_MISSING', severity: 'error', message: `Code ${def.code} promises a new address but none was supplied` })
+  }
+}
+
+function checkUnauthorizedAddress(def: ReturnCodeDef, record: ChangeOfAddressRecord, findings: AuditFinding[]): void {
+  if (!def.matched && record.newAddress) {
+    findings.push({
+      code: 'UNAUTHORIZED_NEW_ADDRESS',
+      severity: 'warning',
+      message: `Code ${def.code} does not authorize a change but a new address was returned -- do not apply it`,
+    })
+  }
+}
+
+function checkMoveDate(def: ReturnCodeDef, record: ChangeOfAddressRecord, now: Date, findings: AuditFinding[]): void {
+  if (def.matched && !record.moveEffectiveDate) {
+    findings.push({ code: 'NO_MOVE_DATE', severity: 'warning', message: 'Match with no move-effective-date' })
+  }
+  if (!record.moveEffectiveDate) return
+
+  const age = monthsBetween(record.moveEffectiveDate, now)
+  if (Number.isNaN(age)) return
+  if (age > RETENTION_MONTHS) {
+    findings.push({ code: 'OUTSIDE_RETENTION', severity: 'warning', message: `Move date is outside the ${RETENTION_MONTHS}-month retention window` })
+  }
+  if (age < 0) {
+    findings.push({ code: 'FUTURE_MOVE_DATE', severity: 'error', message: 'Move-effective-date is in the future' })
+  }
+}
+
+function checkMoveType(def: ReturnCodeDef, record: ChangeOfAddressRecord, findings: AuditFinding[]): void {
+  if (def.matched && !record.moveType) {
+    findings.push({ code: 'NO_MOVE_TYPE', severity: 'warning', message: 'Match with no move type' })
+  }
 }
 
 // An unrecognized code must still render a row, never crash -- callers
@@ -59,29 +97,10 @@ export function auditChangeOfAddressRecord(
     return findings
   }
 
-  if (def.newAddressProvided && !record.newAddress) {
-    findings.push({ code: 'PROMISED_NEW_ADDRESS_MISSING', severity: 'error', message: `Code ${def.code} promises a new address but none was supplied` })
-  }
-  if (!def.matched && record.newAddress) {
-    findings.push({ code: 'UNAUTHORIZED_NEW_ADDRESS', severity: 'warning', message: `Code ${def.code} does not authorize a change but a new address was returned -- do not apply it` })
-  }
-  if (def.matched && !record.moveEffectiveDate) {
-    findings.push({ code: 'NO_MOVE_DATE', severity: 'warning', message: 'Match with no move-effective-date' })
-  }
-  if (record.moveEffectiveDate) {
-    const age = monthsBetween(record.moveEffectiveDate, now)
-    if (!Number.isNaN(age)) {
-      if (age > RETENTION_MONTHS) {
-        findings.push({ code: 'OUTSIDE_RETENTION', severity: 'warning', message: `Move date is outside the ${RETENTION_MONTHS}-month retention window` })
-      }
-      if (age < 0) {
-        findings.push({ code: 'FUTURE_MOVE_DATE', severity: 'error', message: 'Move-effective-date is in the future' })
-      }
-    }
-  }
-  if (def.matched && !record.moveType) {
-    findings.push({ code: 'NO_MOVE_TYPE', severity: 'warning', message: 'Match with no move type' })
-  }
+  checkPromisedAddress(def, record, findings)
+  checkUnauthorizedAddress(def, record, findings)
+  checkMoveDate(def, record, now, findings)
+  checkMoveType(def, record, findings)
 
   return findings
 }

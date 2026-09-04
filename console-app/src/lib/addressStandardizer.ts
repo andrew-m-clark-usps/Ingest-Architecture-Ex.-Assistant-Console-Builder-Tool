@@ -77,6 +77,91 @@ export interface ParsedDeliveryLine {
   issues: AddressIssue[]
 }
 
+// 1. Primary number: leading digits, or PO BOX / RR / HC forms.
+function parsePrimaryNumber(tokens: string[], issues: AddressIssue[]): { primaryNumber?: string; idx: number } {
+  if (/^P\.?O\.?$/.test(tokens[0]) && /^BOX$/.test(tokens[1] ?? '')) {
+    const idx = Math.min(3, tokens.length)
+    return { primaryNumber: tokens.slice(0, idx).join(' '), idx }
+  }
+  if (/^(RR|HC)$/.test(tokens[0])) {
+    const idx = Math.min(2, tokens.length)
+    return { primaryNumber: tokens.slice(0, idx).join(' '), idx }
+  }
+  if (/^\d+(?:[-/]\d+)?$/.test(tokens[0])) {
+    return { primaryNumber: tokens[0], idx: 1 }
+  }
+  issues.push({ code: 'NO_PRIMARY_NUMBER', severity: 'error', message: 'No primary/house number found', reference: 'Publication 28 Ch. 2', field: 'deliveryLine' })
+  return { primaryNumber: undefined, idx: 0 }
+}
+
+// 2. Bound the suffix search by the LAST plausible secondary-unit
+// designator token anywhere in the line (requires a primary number +
+// street name before it) -- this only prevents the suffix scan from
+// running past a real secondary designator, it is NOT necessarily where
+// the secondary unit actually starts (see findSecondaryIndex).
+function findLastDesignatorIndex(tokens: string[], afterIdx: number): number {
+  for (let i = tokens.length - 1; i > afterIdx; i--) {
+    if (SECONDARY_DESIGNATORS.has(tokens[i])) return i
+  }
+  return -1
+}
+
+// 3. Street suffix is between the street name and the designator bound.
+function findSuffixIndex(tokens: string[], afterIdx: number, beforeIdx: number, issues: AddressIssue[]): number {
+  for (let i = beforeIdx - 1; i > afterIdx; i--) {
+    if (STREET_SUFFIXES[tokens[i]]) return i
+  }
+  issues.push({ code: 'NO_SUFFIX', severity: 'info', message: 'No recognized street suffix', reference: 'Publication 28 Appendix C1', field: 'deliveryLine' })
+  return -1
+}
+
+// 4. The secondary unit actually starts at the FIRST designator token
+// occurring after the suffix -- this keeps a multi-designator value like
+// "BLDG 14 STE 2200" together as one secondary field, rather than only
+// capturing the last designator found by findLastDesignatorIndex.
+function findSecondaryIndex(tokens: string[], suffixIdx: number, lastDesignatorIdx: number): number {
+  if (suffixIdx === -1) return lastDesignatorIdx
+  for (let i = suffixIdx + 1; i < tokens.length; i++) {
+    if (SECONDARY_DESIGNATORS.has(tokens[i])) return i
+  }
+  return -1
+}
+
+function buildSecondary(tokens: string[], secondaryIdx: number, issues: AddressIssue[]): string | undefined {
+  if (secondaryIdx === -1) return undefined
+  const hasUnitNumber = tokens[secondaryIdx + 1] !== undefined && /^[\dA-Z-]+$/.test(tokens[secondaryIdx + 1])
+  if (!hasUnitNumber) {
+    issues.push({
+      code: 'MISSING_UNIT_NUMBER',
+      severity: 'error',
+      message: `${tokens[secondaryIdx]} designator has no unit value`,
+      reference: 'Publication 28 Appendix C2',
+      field: 'secondary',
+    })
+  }
+  return tokens.slice(secondaryIdx).join(' ')
+}
+
+// 5. Pre-directional only counts if a street name of at least one token
+// would still remain after removing it -- "100 W ST" keeps W as the
+// street name itself, not a directional, since nothing would remain
+// otherwise. Post-directional is the token right after the suffix
+// (before any secondary designator).
+function parseDirectionals(
+  tokens: string[],
+  idx: number,
+  nameBoundEnd: number,
+  suffixIdx: number,
+  deliveryEnd: number,
+): { preDirectional?: string; postDirectional?: string; streetName?: string } {
+  const preDirectional = nameBoundEnd - idx > 1 && DIRECTIONALS.has(tokens[idx]) ? tokens[idx] : undefined
+  const nameStart = idx + (preDirectional ? 1 : 0)
+  const streetName = nameStart < nameBoundEnd ? tokens.slice(nameStart, nameBoundEnd).join(' ') : undefined
+  const postDirectional =
+    suffixIdx !== -1 && suffixIdx + 1 < deliveryEnd && DIRECTIONALS.has(tokens[suffixIdx + 1]) ? tokens[suffixIdx + 1] : undefined
+  return { preDirectional, postDirectional, streetName }
+}
+
 export function standardizeDeliveryLine(raw: string): ParsedDeliveryLine {
   const transformations: string[] = []
   const issues: AddressIssue[] = []
@@ -89,78 +174,13 @@ export function standardizeDeliveryLine(raw: string): ParsedDeliveryLine {
     return { deliveryLine: '', transformations, issues }
   }
 
-  // 1. Primary number: leading digits, or PO BOX / RR / HC forms.
-  let idx = 0
-  let primaryNumber: string | undefined
-  if (/^P\.?O\.?$/.test(tokens[0]) && /^BOX$/.test(tokens[1] ?? '')) {
-    idx = Math.min(3, tokens.length)
-    primaryNumber = tokens.slice(0, idx).join(' ')
-  } else if (/^(RR|HC)$/.test(tokens[0])) {
-    idx = Math.min(2, tokens.length)
-    primaryNumber = tokens.slice(0, idx).join(' ')
-  } else if (/^\d+[-/]?\d*$/.test(tokens[0])) {
-    primaryNumber = tokens[0]
-    idx = 1
-  } else {
-    issues.push({ code: 'NO_PRIMARY_NUMBER', severity: 'error', message: 'No primary/house number found', reference: 'Publication 28 Ch. 2', field: 'deliveryLine' })
-  }
-
-  // 2. Bound the suffix search by the LAST plausible secondary-unit
-  // designator token anywhere in the line (requires a primary number +
-  // street name before it) -- this only prevents the suffix scan from
-  // running past a real secondary designator, it is NOT necessarily
-  // where the secondary unit actually starts (see step 4).
-  let lastDesignatorIdx = -1
-  for (let i = tokens.length - 1; i > idx; i--) {
-    if (SECONDARY_DESIGNATORS.has(tokens[i])) {
-      lastDesignatorIdx = i
-      break
-    }
-  }
+  const { primaryNumber, idx } = parsePrimaryNumber(tokens, issues)
+  const lastDesignatorIdx = findLastDesignatorIndex(tokens, idx)
   const streetEnd = lastDesignatorIdx === -1 ? tokens.length : lastDesignatorIdx
+  const suffixIdx = findSuffixIndex(tokens, idx, streetEnd, issues)
+  const secondaryIdx = findSecondaryIndex(tokens, suffixIdx, lastDesignatorIdx)
+  const secondary = buildSecondary(tokens, secondaryIdx, issues)
 
-  // 3. Street suffix is between the street name and that bound.
-  let suffixIdx = -1
-  for (let i = streetEnd - 1; i > idx; i--) {
-    if (STREET_SUFFIXES[tokens[i]]) {
-      suffixIdx = i
-      break
-    }
-  }
-  if (suffixIdx === -1) {
-    issues.push({ code: 'NO_SUFFIX', severity: 'info', message: 'No recognized street suffix', reference: 'Publication 28 Appendix C1', field: 'deliveryLine' })
-  }
-
-  // 4. The secondary unit actually starts at the FIRST designator token
-  // occurring after the suffix -- this keeps a multi-designator value
-  // like "BLDG 14 STE 2200" together as one secondary field, rather than
-  // only capturing the last designator found in step 2.
-  let secondaryIdx = -1
-  if (suffixIdx !== -1) {
-    for (let i = suffixIdx + 1; i < tokens.length; i++) {
-      if (SECONDARY_DESIGNATORS.has(tokens[i])) {
-        secondaryIdx = i
-        break
-      }
-    }
-  } else {
-    secondaryIdx = lastDesignatorIdx
-  }
-
-  let secondary: string | undefined
-  if (secondaryIdx !== -1) {
-    secondary = tokens.slice(secondaryIdx).join(' ')
-    const hasUnitNumber = tokens[secondaryIdx + 1] !== undefined && /^[\dA-Z-]+$/.test(tokens[secondaryIdx + 1])
-    if (!hasUnitNumber) {
-      issues.push({
-        code: 'MISSING_UNIT_NUMBER',
-        severity: 'error',
-        message: `${tokens[secondaryIdx]} designator has no unit value`,
-        reference: 'Publication 28 Appendix C2',
-        field: 'secondary',
-      })
-    }
-  }
   if (normalized.includes('#')) {
     issues.push({
       code: 'HASH_INSTEAD_OF_DESIGNATOR',
@@ -173,32 +193,24 @@ export function standardizeDeliveryLine(raw: string): ParsedDeliveryLine {
 
   const deliveryEnd = secondaryIdx === -1 ? tokens.length : secondaryIdx
   const nameBoundEnd = suffixIdx === -1 ? deliveryEnd : suffixIdx
-
-  // 5. Pre-directional only counts if a street name of at least one
-  // token would still remain after removing it -- "100 W ST" keeps W as
-  // the street name itself, not a directional, since nothing would
-  // remain otherwise.
-  let preDirectional: string | undefined
-  if (nameBoundEnd - idx > 1 && DIRECTIONALS.has(tokens[idx])) {
-    preDirectional = tokens[idx]
-  }
-
-  const nameStart = idx + (preDirectional ? 1 : 0)
-  const streetName = nameStart < nameBoundEnd ? tokens.slice(nameStart, nameBoundEnd).join(' ') : undefined
-
-  // Post-directional is the token right after the suffix (before any
-  // secondary designator).
-  let postDirectional: string | undefined
-  if (suffixIdx !== -1 && suffixIdx + 1 < deliveryEnd && DIRECTIONALS.has(tokens[suffixIdx + 1])) {
-    postDirectional = tokens[suffixIdx + 1]
-  }
+  const { preDirectional, postDirectional, streetName } = parseDirectionals(tokens, idx, nameBoundEnd, suffixIdx, deliveryEnd)
 
   const deliveryLine = tokens.slice(0, deliveryEnd).join(' ')
   if (deliveryLine.length > 64) {
     issues.push({ code: 'DELIVERY_LINE_TOO_LONG', severity: 'warning', message: 'Delivery line exceeds 64 characters', reference: 'Publication 28 Ch. 2', field: 'deliveryLine' })
   }
 
-  return { deliveryLine, primaryNumber, preDirectional, streetName, suffix: suffixIdx !== -1 ? STREET_SUFFIXES[tokens[suffixIdx]] : undefined, postDirectional, secondary, transformations, issues }
+  return {
+    deliveryLine,
+    primaryNumber,
+    preDirectional,
+    streetName,
+    suffix: suffixIdx !== -1 ? STREET_SUFFIXES[tokens[suffixIdx]] : undefined,
+    postDirectional,
+    secondary,
+    transformations,
+    issues,
+  }
 }
 
 export interface AddressInput {

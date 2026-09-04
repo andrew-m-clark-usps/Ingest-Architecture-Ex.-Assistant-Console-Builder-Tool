@@ -1,9 +1,10 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import { defineConfig } from 'eslint/config'
 
-// DEMO/REFERENCE SCAFFOLD -- ESLint 9 flat config, per ../Console.md section 3.
-export default tseslint.config(
+// ESLint 9 flat config, per ../Console.md section 3.
+export default defineConfig(
   { ignores: ['dist', 'test-results', 'playwright-report'] },
   {
     files: ['**/*.{ts,tsx}'],

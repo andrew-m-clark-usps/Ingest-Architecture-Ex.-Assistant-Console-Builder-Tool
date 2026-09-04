@@ -31,6 +31,44 @@ def _column_letters_to_index(cell_ref: str) -> int:
     return index - 1
 
 
+def _read_shared_strings(zf: zipfile.ZipFile) -> list[str]:
+    if "xl/sharedStrings.xml" not in zf.namelist():
+        return []
+    shared_xml = zf.read("xl/sharedStrings.xml").decode("utf-8")
+    shared_strings: list[str] = []
+    # Each <si> may hold multiple <t> runs (rich text) that must be
+    # joined -- a run break is formatting, not a text boundary.
+    for si_match in re.finditer(r"<si>(.*?)</si>", shared_xml, re.DOTALL):
+        texts = re.findall(r"<t[^>]*>(.*?)</t>", si_match.group(1), re.DOTALL)
+        shared_strings.append(_decode_xml_entities("".join(texts)))
+    return shared_strings
+
+
+def _read_sheet_xml(zf: zipfile.ZipFile, path: str) -> str:
+    sheet_name = next((n for n in zf.namelist() if re.match(r"xl/worksheets/sheet\d+\.xml$", n)), None)
+    if sheet_name is None:
+        raise ValueError(f"refused: {path} has no xl/worksheets/sheet*.xml part (not a valid .xlsx)")
+    return zf.read(sheet_name).decode("utf-8")
+
+
+def _parse_xlsx_row(row_xml: str, shared_strings: list[str]) -> list[str]:
+    cells: dict[int, str] = {}
+    for cell_match in re.finditer(r'<c r="([A-Z]+\d+)"([^>]*)>(.*?)</c>', row_xml, re.DOTALL):
+        cell_ref, attrs, cell_body = cell_match.groups()
+        col_index = _column_letters_to_index(cell_ref)
+        value_match = re.search(r"<v>(.*?)</v>", cell_body, re.DOTALL)
+        if value_match is None:
+            cells[col_index] = ""
+            continue
+        raw_value = value_match.group(1)
+        if 't="s"' in attrs and raw_value.isdigit() and int(raw_value) < len(shared_strings):
+            cells[col_index] = shared_strings[int(raw_value)]
+        else:
+            cells[col_index] = _decode_xml_entities(raw_value)
+    width = max(cells.keys(), default=-1) + 1
+    return [cells.get(i, "") for i in range(width)]
+
+
 def read_xlsx(path: str) -> list[list[str]]:
     """Reads the first worksheet of an .xlsx into a list of rows (each a
     list of cell strings). Empty cells are preserved so columns stay
@@ -39,39 +77,13 @@ def read_xlsx(path: str) -> list[list[str]]:
         total_uncompressed = sum(zi.file_size for zi in zf.infolist())
         if total_uncompressed > MAX_XLSX_UNCOMPRESSED:
             raise ValueError(f"refused: {path} exceeds the {MAX_XLSX_UNCOMPRESSED} byte decompression cap")
+        shared_strings = _read_shared_strings(zf)
+        sheet_xml = _read_sheet_xml(zf, path)
 
-        shared_strings: list[str] = []
-        if "xl/sharedStrings.xml" in zf.namelist():
-            shared_xml = zf.read("xl/sharedStrings.xml").decode("utf-8")
-            # Each <si> may hold multiple <t> runs (rich text) that must be
-            # joined -- a run break is formatting, not a text boundary.
-            for si_match in re.finditer(r"<si>(.*?)</si>", shared_xml, re.DOTALL):
-                texts = re.findall(r"<t[^>]*>(.*?)</t>", si_match.group(1), re.DOTALL)
-                shared_strings.append(_decode_xml_entities("".join(texts)))
-
-        sheet_name = next((n for n in zf.namelist() if re.match(r"xl/worksheets/sheet\d+\.xml$", n)), None)
-        if sheet_name is None:
-            raise ValueError(f"refused: {path} has no xl/worksheets/sheet*.xml part (not a valid .xlsx)")
-        sheet_xml = zf.read(sheet_name).decode("utf-8")
-
-    rows: list[list[str]] = []
-    for row_match in re.finditer(r"<row[^>]*>(.*?)</row>", sheet_xml, re.DOTALL):
-        cells: dict[int, str] = {}
-        for cell_match in re.finditer(r'<c r="([A-Z]+\d+)"([^>]*)>(.*?)</c>', row_match.group(1), re.DOTALL):
-            cell_ref, attrs, cell_body = cell_match.groups()
-            col_index = _column_letters_to_index(cell_ref)
-            value_match = re.search(r"<v>(.*?)</v>", cell_body, re.DOTALL)
-            if value_match is None:
-                cells[col_index] = ""
-                continue
-            raw_value = value_match.group(1)
-            if 't="s"' in attrs and raw_value.isdigit() and int(raw_value) < len(shared_strings):
-                cells[col_index] = shared_strings[int(raw_value)]
-            else:
-                cells[col_index] = _decode_xml_entities(raw_value)
-        width = max(cells.keys(), default=-1) + 1
-        rows.append([cells.get(i, "") for i in range(width)])
-    return rows
+    return [
+        _parse_xlsx_row(row_match.group(1), shared_strings)
+        for row_match in re.finditer(r"<row[^>]*>(.*?)</row>", sheet_xml, re.DOTALL)
+    ]
 
 
 def _inflate(raw: bytes) -> bytes:
@@ -126,6 +138,19 @@ def _decode_literal(raw: str) -> str:
     return "".join(out)
 
 
+def _extract_lines_from_content(content: str, lines: list[str]) -> None:
+    for tj_match in TJ_RE.finditer(content):
+        literal = LITERAL_STRING_RE.search(tj_match.group(0))
+        if literal:
+            decoded = _decode_literal(literal.group(0))
+            if decoded.strip():
+                lines.append(decoded)
+    for arr_match in TJ_ARRAY_RE.finditer(content):
+        joined = "".join(_decode_literal(m.group(0)) for m in LITERAL_STRING_RE.finditer(arr_match.group(1)))
+        if joined.strip():
+            lines.append(joined)
+
+
 def read_pdf(path: str) -> list[str]:
     """Text-only PDF reader: BT/ET text-showing operators (Tj/TJ) with
     FlateDecode stream support. This is a lighter-weight companion to the
@@ -146,14 +171,5 @@ def read_pdf(path: str) -> list[str]:
         if stream is None:
             continue
         content = stream.decode("latin-1", errors="replace")
-        for tj_match in TJ_RE.finditer(content):
-            literal = LITERAL_STRING_RE.search(tj_match.group(0))
-            if literal:
-                decoded = _decode_literal(literal.group(0))
-                if decoded.strip():
-                    lines.append(decoded)
-        for arr_match in TJ_ARRAY_RE.finditer(content):
-            joined = "".join(_decode_literal(m.group(0)) for m in LITERAL_STRING_RE.finditer(arr_match.group(1)))
-            if joined.strip():
-                lines.append(joined)
+        _extract_lines_from_content(content, lines)
     return lines

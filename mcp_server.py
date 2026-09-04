@@ -120,38 +120,46 @@ DISPATCH = {
 
 def main() -> None:
     for line in sys.stdin:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            msg = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        method = msg.get("method")
-        if method == "initialize":
-            _respond(
-                msg["id"],
-                {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "assistant", "version": "0.2.0"},
-                },
-            )
-        elif method == "tools/list":
-            _respond(msg["id"], {"tools": TOOLS})
-        elif method == "tools/call":
-            params = msg.get("params", {})
-            name = params.get("name")
-            call_args = params.get("arguments") or {}
-            handler = DISPATCH.get(name)
-            if handler is None:
-                _respond(msg["id"], _tool_result(f"unknown tool: {name}", is_error=True))
-            else:
-                try:
-                    _respond(msg["id"], handler(call_args))
-                except Exception as exc:  # refuse, don't crash the server
-                    _respond(msg["id"], _tool_result(str(exc), is_error=True))
-        # notifications/initialized needs no response
+        stripped = line.strip()
+        if stripped:
+            _handle_message(stripped)
+
+
+def _build_initialize_result() -> dict:
+    return {
+        "protocolVersion": "2024-11-05",
+        "capabilities": {"tools": {}},
+        "serverInfo": {"name": "assistant", "version": "0.2.0"},
+    }
+
+
+def _handle_tools_call(msg: dict) -> None:
+    params = msg.get("params", {})
+    name = params.get("name")
+    call_args = params.get("arguments") or {}
+    handler = DISPATCH.get(name)
+    if handler is None:
+        _respond(msg["id"], _tool_result(f"unknown tool: {name}", is_error=True))
+        return
+    try:
+        _respond(msg["id"], handler(call_args))
+    except Exception as exc:  # refuse, don't crash the server
+        _respond(msg["id"], _tool_result(str(exc), is_error=True))
+
+
+def _handle_message(line: str) -> None:
+    try:
+        msg = json.loads(line)
+    except json.JSONDecodeError:
+        return
+    method = msg.get("method")
+    if method == "initialize":
+        _respond(msg["id"], _build_initialize_result())
+    elif method == "tools/list":
+        _respond(msg["id"], {"tools": TOOLS})
+    elif method == "tools/call":
+        _handle_tools_call(msg)
+    # notifications/initialized needs no response
 
 
 if __name__ == "__main__":

@@ -56,8 +56,17 @@ DATE_PHRASE_RE = re.compile(
 
 # A task line as written by cmd_file/cmd_eod:
 # "- [ ] title (due 2026-06-01) <!--id captured rolled:0 ...-->"
-LINE_RE = re.compile(r"^- \[( |x)\] (.*?)(?: \(due (\d{4}-\d{2}-\d{2})\))? <!--(.*?)-->\s*$")
-SECTION_HEADERS = ["## I owe", "## Waiting on", "## Done"]
+# Title/comment are bounded to exclude '<'/'>' (neither ever appears in
+# either) rather than using an unbounded lazy `.*?` -- functionally
+# identical for every valid line, but removes the ambiguous-backtracking
+# shape a hostile/malformed line could otherwise exploit.
+LINE_RE = re.compile(r"^- \[([ x])\] ([^<]*?)(?: \(due (\d{4}-\d{2}-\d{2})\))? <!--([^>]*)-->\s*$")
+SECTION_I_OWE = "## I owe"
+SECTION_WAITING_ON = "## Waiting on"
+SECTION_DONE = "## Done"
+SECTION_HEADERS = [SECTION_I_OWE, SECTION_WAITING_ON, SECTION_DONE]
+NO_TASKS_MESSAGE = "no tasks.md -- run init first"
+NONE_PLACEHOLDER = "(none)"
 
 SUMMARY_START = "<!--summary-->"
 SUMMARY_END = "<!--/summary-->"
@@ -253,7 +262,7 @@ def cmd_file(_args: argparse.Namespace) -> None:
 
 def cmd_brief(_args: argparse.Namespace) -> None:
     if not TASKS.exists():
-        print("no tasks.md -- run init first")
+        print(NO_TASKS_MESSAGE)
         return
     BRIEF.write_text(
         f"# Brief -- {_today().isoformat()}\n\n" + TASKS.read_text(encoding="utf-8"),
@@ -330,12 +339,46 @@ def cmd_summarize(_args: argparse.Namespace) -> None:
             ("Open questions", "open_questions"),
         ):
             summary_lines.append(f"### {label}")
-            summary_lines.extend(f"- {item}" for item in parts[key]) if parts[key] else summary_lines.append("(none)")
+            if parts[key]:
+                summary_lines.extend(f"- {item}" for item in parts[key])
+            else:
+                summary_lines.append(NONE_PLACEHOLDER)
         summary_lines.append(SUMMARY_END)
         with session_file.open("a", encoding="utf-8") as f:
             f.write("\n".join(summary_lines) + "\n")
         count += 1
     print(f"summarized {count} session(s)")
+
+
+def _session_insights_for(lowered: str) -> tuple[list[str], list[str]]:
+    decisions: list[str] = []
+    open_questions: list[str] = []
+    if not SESSIONS.exists():
+        return decisions, open_questions
+    for session_file in sorted(SESSIONS.glob("*.md")):
+        raw = read_session(session_file)
+        if lowered not in raw.lower():
+            continue
+        parts = _classify_session_lines(raw)
+        decisions.extend(parts["decisions"])
+        open_questions.extend(parts["open_questions"])
+    return decisions, open_questions
+
+
+def _print_prep_for_person(name: str, sections: dict[str, list[str]]) -> None:
+    lowered = name.lower()
+    you_owe = [line for line in sections[SECTION_I_OWE] if lowered in line.lower()]
+    they_owe = [line for line in sections[SECTION_WAITING_ON] if lowered in line.lower()]
+    decisions, open_questions = _session_insights_for(lowered)
+    print(f"# Prep -- {name}")
+    print("## You owe them")
+    print("\n".join(you_owe) or NONE_PLACEHOLDER)
+    print("## They owe you")
+    print("\n".join(they_owe) or NONE_PLACEHOLDER)
+    print("## Prior decisions")
+    print("\n".join(decisions) or NONE_PLACEHOLDER)
+    print("## Open questions")
+    print("\n".join(open_questions) or NONE_PLACEHOLDER)
 
 
 def cmd_prep(args: argparse.Namespace) -> None:
@@ -346,39 +389,19 @@ def cmd_prep(args: argparse.Namespace) -> None:
     empty_sections = {h: [] for h in SECTION_HEADERS}
     sections = _split_sections(TASKS.read_text(encoding="utf-8")) if TASKS.exists() else empty_sections
     for name in names:
-        lowered = name.lower()
-        you_owe = [line for line in sections["## I owe"] if lowered in line.lower()]
-        they_owe = [line for line in sections["## Waiting on"] if lowered in line.lower()]
-        decisions: list[str] = []
-        open_questions: list[str] = []
-        if SESSIONS.exists():
-            for session_file in sorted(SESSIONS.glob("*.md")):
-                raw = read_session(session_file)
-                if lowered in raw.lower():
-                    parts = _classify_session_lines(raw)
-                    decisions.extend(parts["decisions"])
-                    open_questions.extend(parts["open_questions"])
-        print(f"# Prep -- {name}")
-        print("## You owe them")
-        print("\n".join(you_owe) or "(none)")
-        print("## They owe you")
-        print("\n".join(they_owe) or "(none)")
-        print("## Prior decisions")
-        print("\n".join(decisions) or "(none)")
-        print("## Open questions")
-        print("\n".join(open_questions) or "(none)")
+        _print_prep_for_person(name, sections)
 
 
 def cmd_eod(_args: argparse.Namespace) -> None:
     if not TASKS.exists():
-        print("no tasks.md -- run init first")
+        print(NO_TASKS_MESSAGE)
         return
     today = _today()
     sections = _split_sections(TASKS.read_text(encoding="utf-8"))
 
     swept = 0
     rolled = 0
-    for header in ("## I owe", "## Waiting on"):
+    for header in (SECTION_I_OWE, SECTION_WAITING_ON):
         remaining: list[str] = []
         for line in sections[header]:
             m = LINE_RE.match(line)
@@ -387,7 +410,7 @@ def cmd_eod(_args: argparse.Namespace) -> None:
                 continue
             checked, title, due, comment = m.groups()
             if checked == "x":
-                sections["## Done"].append(line)
+                sections[SECTION_DONE].append(line)
                 swept += 1
                 continue
             if due and due < today.isoformat():
@@ -411,36 +434,52 @@ def cmd_eod(_args: argparse.Namespace) -> None:
     print(f"eod: swept {swept}, rolled {rolled} -- see {log_path}")
 
 
+def _line_activity_entry(line: str, week_start: date) -> str | None:
+    """Returns the weekly-summary bullet for `line` if it falls in the
+    window (or has no captured date to compare), else None."""
+    m = LINE_RE.match(line)
+    if not m:
+        return None
+    _checked, title, due, comment = m.groups()
+    _item_id, captured, _fields = _parse_comment_fields(comment)
+    try:
+        captured_date = date.fromisoformat(captured)
+    except ValueError:
+        captured_date = None
+    if captured_date is not None and captured_date < week_start:
+        return None
+    return f"- {title}" + (f" (due {due})" if due else "")
+
+
+def _count_section_activity(
+    sections: dict[str, list[str]], week_start: date
+) -> tuple[dict[str, int], dict[str, list[str]]]:
+    counts = dict.fromkeys(SECTION_HEADERS, 0)
+    in_window: dict[str, list[str]] = {h: [] for h in SECTION_HEADERS}
+    for header in SECTION_HEADERS:
+        for line in sections[header]:
+            entry = _line_activity_entry(line, week_start)
+            if entry is None:
+                continue
+            counts[header] += 1
+            in_window[header].append(entry)
+    return counts, in_window
+
+
 def cmd_week(_args: argparse.Namespace) -> None:
     if not TASKS.exists():
-        print("no tasks.md -- run init first")
+        print(NO_TASKS_MESSAGE)
         return
     today = _today()
     week_start = today - timedelta(days=6)
     sections = _split_sections(TASKS.read_text(encoding="utf-8"))
-
-    counts = {h: 0 for h in SECTION_HEADERS}
-    in_window: dict[str, list[str]] = {h: [] for h in SECTION_HEADERS}
-    for header in SECTION_HEADERS:
-        for line in sections[header]:
-            m = LINE_RE.match(line)
-            if not m:
-                continue
-            _checked, title, due, comment = m.groups()
-            _item_id, captured, _fields = _parse_comment_fields(comment)
-            try:
-                captured_date = date.fromisoformat(captured)
-            except ValueError:
-                captured_date = None
-            if captured_date is None or captured_date >= week_start:
-                counts[header] += 1
-                in_window[header].append(f"- {title}" + (f" (due {due})" if due else ""))
+    counts, in_window = _count_section_activity(sections, week_start)
 
     body = [f"# Week of {week_start.isoformat()} -- {today.isoformat()}", ""]
     for header in SECTION_HEADERS:
         label = header.replace("## ", "")
         body.append(f"## {label} ({counts[header]})")
-        body.extend(in_window[header] or ["(none)"])
+        body.extend(in_window[header] or [NONE_PLACEHOLDER])
         body.append("")
     WEEKLY.write_text("\n".join(body).rstrip() + "\n", encoding="utf-8")
     features.audit_append({"action": "week", "counts": counts})
@@ -466,7 +505,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
 def cmd_why(args: argparse.Namespace) -> None:
     if not TASKS.exists():
-        print("no tasks.md -- run init first")
+        print(NO_TASKS_MESSAGE)
         return
     sections = _split_sections(TASKS.read_text(encoding="utf-8"))
     for header in SECTION_HEADERS:
@@ -494,24 +533,29 @@ def cmd_anomalies(args: argparse.Namespace) -> None:
         print(f"{value}\t{score:.3f}")
 
 
+def _reminded_item_ids_today(today: str) -> set[str]:
+    already_today: set[str] = set()
+    if not AUDIT_LOG.exists():
+        return already_today
+    for line in AUDIT_LOG.read_text(encoding="utf-8").splitlines():
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if rec.get("action") == "remind" and rec.get("at") == today:
+            already_today.add(rec.get("item_id", ""))
+    return already_today
+
+
 def cmd_remind(_args: argparse.Namespace) -> None:
     if not TASKS.exists():
-        print("no tasks.md -- run init first")
+        print(NO_TASKS_MESSAGE)
         return
-    today = _today().isoformat()
-    already_today: set[str] = set()
-    if AUDIT_LOG.exists():
-        for line in AUDIT_LOG.read_text(encoding="utf-8").splitlines():
-            try:
-                rec = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if rec.get("action") == "remind" and rec.get("at") == today:
-                already_today.add(rec.get("item_id", ""))
+    already_today = _reminded_item_ids_today(_today().isoformat())
 
     sections = _split_sections(TASKS.read_text(encoding="utf-8"))
     reminded = 0
-    for line in sections["## Waiting on"]:
+    for line in sections[SECTION_WAITING_ON]:
         m = LINE_RE.match(line)
         if not m:
             continue
@@ -557,11 +601,11 @@ def cmd_skill(_args: argparse.Namespace) -> None:
     # Draft a procedure from what repeated three times: normalize each
     # Done-section title and flag any that recur at least 3 times.
     if not TASKS.exists():
-        print("no tasks.md -- run init first")
+        print(NO_TASKS_MESSAGE)
         return
     sections = _split_sections(TASKS.read_text(encoding="utf-8"))
     counts: dict[str, int] = {}
-    for line in sections["## Done"]:
+    for line in sections[SECTION_DONE]:
         m = LINE_RE.match(line)
         if not m:
             continue

@@ -40,7 +40,8 @@ async function main() {
 
   const results = await Promise.all(urls.map(checkUrl))
   for (const r of results) {
-    console.log(`${r.ok ? 'OK  ' : 'FAIL'} ${r.status || '---'} ${r.url}${r.error ? ` (${r.error})` : ''}`)
+    const errorSuffix = r.error ? ` (${r.error})` : ''
+    console.log(`${r.ok ? 'OK  ' : 'FAIL'} ${r.status || '---'} ${r.url}${errorSuffix}`)
   }
 
   const broken = results.filter((r) => !r.ok)
@@ -51,4 +52,4 @@ async function main() {
   console.log(`all ${urls.length} reference URLs verified`)
 }
 
-main()
+await main()

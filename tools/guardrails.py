@@ -30,7 +30,16 @@ STDLIB_ONLY_FILES = [
 # other (including test-time imports of this project's own tools/ and
 # dashboard/ scripts) -- "standard library only" bans third-party
 # packages, not this project's own other files.
-FIRST_PARTY_MODULES = {"assistant", "features", "ingest", "mcp_server", "dashboard", "contrast", "spec_check", "guardrails"}
+FIRST_PARTY_MODULES = {
+    "assistant",
+    "features",
+    "ingest",
+    "mcp_server",
+    "dashboard",
+    "contrast",
+    "spec_check",
+    "guardrails",
+}
 
 # Known model-provider SDK name fragments -- same denylist idea as
 # src/noModelProvider.test.ts on the Ingest side of this repo.

@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import unittest.mock
 import zipfile
 from pathlib import Path
 
@@ -207,15 +208,12 @@ class TestGuardrails(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
 
-        orig_root = assistant.ROOT
         assistant_site = tmp / "site"
-        try:
-            # cmd_site writes to ROOT / "site" -- point ROOT at a scratch
-            # dir for this test only, then restore it.
-            assistant.ROOT = tmp
+        # unittest's standard-library equivalent of pytest's "monkeypatch"
+        # fixture: patch.object temporarily swaps the attribute and
+        # restores it automatically, even on failure.
+        with unittest.mock.patch.object(assistant, "ROOT", tmp):
             assistant.cmd_site(argparse.Namespace())
-        finally:
-            assistant.ROOT = orig_root
 
         import dashboard.dashboard as dashboard_module
 
